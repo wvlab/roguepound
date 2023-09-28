@@ -45,3 +45,9 @@ module FUtility =
                     err <- err'
                     Some((x, y), ()))
             ()
+
+    let EuclideanDistance (x1: double) (y1: double) (x2: double) (y2: double) =
+        let x' = x2 - x1
+        let y' = y2 - y1
+
+        sqrt (x' * x' + y' * y')
