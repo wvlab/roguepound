@@ -5,7 +5,6 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-// TODO: implement procedural generation postprocessing
 // TODO: implement movement
 // TODO: implement hud
 // TODO: implement tile sets

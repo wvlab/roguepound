@@ -5,12 +5,20 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-public sealed class DungeonMaster
+// TODO: implement procedural generation postprocessing
+/// <summary>
+/// Generates tree of rooms using binary space partition
+/// Makes routes from room to room, in a way so every room has a way into other
+/// Clears random rooms if there are too much
+/// Makes postprocessing, e.g. places monsters, exit and player spawn tile
+/// </summary>
+public sealed class DungeonMaster // maybe split roles?
 {
-    const int MaxDepth = 5; // it will roughly give from 20 to 25 rooms
+    const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
+    const int RoomCountThreshold = 13;
 
     Random Rand = new Random();
-    // Tileset TileSet;
+    // Tileset TileSet; // TODO: make thematic tilesets
     List<Rectangle> Rooms = new List<Rectangle>();
     List<Edge> Corridors = new List<Edge>();
     ITile[,] Tiles;
@@ -21,6 +29,60 @@ public sealed class DungeonMaster
         GenerateSpanningTree();
         FreeRandomRooms();
         WriteTiles();
+        PostProcTiles();
+    }
+
+    private void PostProcTiles()
+    {
+        // TODO: Place monsters, exit and player spawn
+    }
+
+    private void WriteTiles()
+    {
+        int h = -1;
+        Color[] colors = new Color[] {
+            Raylib.RAYWHITE, Raylib.BLUE, Raylib.BROWN,
+        };
+
+        ColoredTile HWall = new ColoredTile(Raylib.BLACK);
+        ColoredTile VWall = new ColoredTile(Raylib.RED);
+        ColoredTile Corner = new ColoredTile(Raylib.YELLOW);
+        foreach (Rectangle room in Rooms)
+        {
+            h++;
+            var color = colors[h % colors.Length];
+
+            Tiles[(int)room.x + 1, (int)room.y + 1] = Corner;
+            Tiles[(int)room.width - 1, (int)room.y + 1] = Corner;
+            Tiles[(int)room.x + 1, (int)room.height - 1] = Corner;
+            Tiles[(int)room.width - 1, (int)room.height - 1] = Corner;
+
+            for (int i = (int)room.x + 2; i < room.width - 1; i++)
+            {
+                Tiles[i, (int)room.height - 1] = HWall;
+                Tiles[i, (int)room.y + 1] = HWall;
+            }
+
+            for (int i = (int)room.y + 2; i < room.height - 1; i++)
+            {
+                Tiles[(int)room.x + 1, i] = VWall;
+                Tiles[(int)room.width - 1, i] = VWall;
+            }
+
+            for (int i = (int)room.x + 2; i < room.width - 1; i++)
+            {
+                for (int j = (int)room.y + 2; j < room.height - 1; j++)
+                {
+                    Tiles[i, j] = new ColoredTile(color);
+                }
+            }
+        }
+
+        foreach (Edge corridor in Corridors)
+        {
+            // TODO: place doors and wall rifts
+            ConnectRoomWalls(corridor.Room1, corridor.Room2);
+        }
     }
 
     private void GenerateSpanningTree()
@@ -74,7 +136,7 @@ public sealed class DungeonMaster
 
     private void FreeRandomRooms()
     {
-        int unclearRooms = Rooms.Count() - Settings.MaxRooms;
+        int unclearRooms = Rooms.Count() - RoomCountThreshold;
         for (; unclearRooms > 0; unclearRooms--)
         {
             Rooms.RemoveAt(Rand.Next(Rooms.Count));
@@ -88,7 +150,7 @@ public sealed class DungeonMaster
             return; // It's too small
         }
 
-        if (depth >= MaxDepth)
+        if (depth >= MaxRoomDepth)
         {
             Rooms.Add(leaf);
             return;
@@ -139,31 +201,6 @@ public sealed class DungeonMaster
         GenerateTree(leafCopy, depth);
     }
 
-    private void WriteTiles()
-    {
-        int h = -1;
-        Color[] colors = new Color[] {
-            Raylib.RAYWHITE, Raylib.BLUE, Raylib.RED,
-            Raylib.BROWN,    Raylib.BLACK,
-        };
-        foreach (Rectangle room in Rooms)
-        {
-            h++;
-            var color = colors[h % colors.Length];
-
-            for (int i = (int)room.x + 1; i < room.width; i++)
-            {
-                for (int j = (int)room.y + 1; j < room.height; j++)
-                {
-                    Tiles[i, j] = new ColoredTile(color);
-                }
-            }
-        }
-        foreach (Edge corridor in Corridors)
-        {
-            ConnectRoomWalls(corridor.Room1, corridor.Room2);
-        }
-    }
 
     private IEnumerable<Tuple<int, int>> TunnelBetween(Tuple<int, int> start, Tuple<int, int> end)
     {
@@ -214,7 +251,7 @@ public sealed class DungeonMaster
     }
 
 
-    public DungeonMaster(ITile[,] tiles)
+    public DungeonMaster(ITile[,] tiles) // Take reference to a player position?
     {
         Tiles = tiles;
     }

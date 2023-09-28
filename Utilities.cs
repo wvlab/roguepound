@@ -14,7 +14,6 @@ public sealed class Settings
     public const int TileSize = 32;
     public const int TileHeight = 48;
     public const int TileWidth = 80;
-    public const int MaxRooms = 13;
     private static Settings instance = new Settings();
 
     private Settings()
