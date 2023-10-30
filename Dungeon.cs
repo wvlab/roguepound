@@ -73,23 +73,23 @@ public sealed class DungeonMaster // maybe split roles?
 
             foreach (int i in room.HWallXCoords())
             {
-                if (Tiles[i, room.y2].Equals(Tunnel) && Tiles[i, room.y2 - 2].Equals(Tunnel))
-                {
-                    Tiles[i, room.y2 - 1] = Door;
-                }
-                if (Tiles[i, room.y1].Equals(Tunnel) && Tiles[i, room.y1 + 2].Equals(Tunnel))
+                if (Tiles[i, room.y1 + 2].Equals(Tunnel))
                 {
                     Tiles[i, room.y1 + 1] = Door;
+                }
+                if (Tiles[i, room.y2 - 2].Equals(Tunnel))
+                {
+                    Tiles[i, room.y2 - 1] = Door;
                 }
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                if (Tiles[room.x1, i].Equals(Tunnel) && Tiles[room.x1 + 2, i].Equals(Tunnel))
+                if (Tiles[room.x1 + 2, i].Equals(Tunnel))
                 {
                     Tiles[room.x1 + 1, i] = Door;
                 }
-                if (Tiles[room.x2, i].Equals(Tunnel) && Tiles[room.x2 - 2, i].Equals(Tunnel))
+                if (Tiles[room.x2 - 2, i].Equals(Tunnel))
                 {
                     Tiles[room.x2 - 1, i] = Door;
                 }
