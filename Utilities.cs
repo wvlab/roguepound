@@ -18,7 +18,7 @@ public sealed class Settings
 
     private Settings()
     {
-        Resolution = Resolution.Fullscreen;
+        Resolution = Resolution.NewWindowed(900, 600);
     }
 
     public static Settings Instance
