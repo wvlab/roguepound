@@ -16,11 +16,27 @@ public sealed class DungeonMaster // maybe split roles?
 {
     private record struct Room(int x1, int y1, int x2, int y2)
     {
-        // public static implicit operator Rectangle(Room room) {
-        //     return new Rectangle {};
-        // }
+        public IEnumerable<int> HWallXCoords()
+        {
+            for (int i = x1 + 2; i < x2 - 1; i++)
+                yield return i;
+        }
+
+        public IEnumerable<int> VWallYCoords()
+        {
+            for (int i = y1 + 2; i < y2 - 1; i++)
+                yield return i;
+        }
+
+        public (float, float) Center() => (
+            x1 + (float)(x2 - x1) / 2,
+            y1 + (float)(y2 - y1) / 2
+        );
     }
+
     private readonly record struct Edge(Room Room1, Room Room2);
+
+    enum SplitDirection { Horizontal, Vertical }
 
     const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
     const int RoomCountThreshold = 13;
@@ -55,7 +71,7 @@ public sealed class DungeonMaster // maybe split roles?
             Tiles[room.x1 + 1, room.y2 - 1] = Corner;
             Tiles[room.x2 - 1, room.y2 - 1] = Corner;
 
-            for (int i = room.x1 + 2; i < room.x2 - 1; i++)
+            foreach (int i in room.HWallXCoords())
             {
                 if (Tiles[i, room.y2].Equals(Tunnel) && Tiles[i, room.y2 - 2].Equals(Tunnel))
                 {
@@ -67,7 +83,7 @@ public sealed class DungeonMaster // maybe split roles?
                 }
             }
 
-            for (int i = room.y1 + 2; i < room.y2 - 1; i++)
+            foreach (int i in room.VWallYCoords())
             {
                 if (Tiles[room.x1, i].Equals(Tunnel) && Tiles[room.x1 + 2, i].Equals(Tunnel))
                 {
@@ -83,36 +99,28 @@ public sealed class DungeonMaster // maybe split roles?
 
     private void WriteTiles()
     {
-        int h = -1;
-        Color[] colors = new Color[] {
-            Raylib.RAYWHITE, Raylib.BLUE, Raylib.BROWN,
-        };
-
         foreach (Room room in Rooms)
         {
-            h++;
-            var color = colors[h % colors.Length];
-
             Tiles[room.x1 + 1, room.y1 + 1] = Corner;
             Tiles[room.x2 - 1, room.y1 + 1] = Corner;
             Tiles[room.x1 + 1, room.y2 - 1] = Corner;
             Tiles[room.x2 - 1, room.y2 - 1] = Corner;
 
-            for (int i = room.x1 + 2; i < room.x2 - 1; i++)
+            foreach (int i in room.HWallXCoords())
             {
                 Tiles[i, room.y2 - 1] = HWall;
                 Tiles[i, room.y1 + 1] = HWall;
             }
 
-            for (int i = room.y1 + 2; i < room.y2 - 1; i++)
+            foreach (int i in room.VWallYCoords())
             {
                 Tiles[room.x1 + 1, i] = VWall;
                 Tiles[room.x2 - 1, i] = VWall;
             }
 
-            for (int i = room.x1 + 2; i < room.x2 - 1; i++)
+            foreach (int i in room.HWallXCoords())
             {
-                for (int j = room.y1 + 2; j < room.y2 - 1; j++)
+                foreach (int j in room.VWallYCoords())
                 {
                     Tiles[i, j] = Floor;
                 }
@@ -149,7 +157,6 @@ public sealed class DungeonMaster // maybe split roles?
 
             if (nearestRoom is not null)
             {
-
                 Corridors.Add(new Edge(currentRoom, (Room)nearestRoom));
                 unconnectedRooms.Remove((Room)nearestRoom);
                 currentRoom = (Room)nearestRoom;
@@ -159,13 +166,10 @@ public sealed class DungeonMaster // maybe split roles?
 
     private double CalculateDistance(Room room1, Room room2)
     {
-        float x11 = room1.x1 + (room1.x2 - room1.x1) / 2;
-        float y11 = room1.y1 + (room1.y2 - room1.y1) / 2;
+        (float x1, float y1) = room1.Center();
+        (float x2, float y2) = room1.Center();
 
-        float x12 = room2.x1 + (room2.x2 - room2.x1) / 2;
-        float y12 = room2.y1 + (room2.y2 - room2.y1) / 2;
-
-        return FUtility.EuclideanDistance(x11, y11, x12, y12);
+        return FUtility.EuclideanDistance(x1, y1, x2, y2);
     }
 
     private void GenerateTree()
@@ -184,9 +188,22 @@ public sealed class DungeonMaster // maybe split roles?
         }
     }
 
+    private SplitDirection ChooseDirection(Room leaf)
+    {
+        int x = leaf.x2 - leaf.x1;
+        int y = leaf.y2 - leaf.y1;
+
+        return (x, y) switch
+        {
+            (_, _) when x > 2.5 * y => SplitDirection.Vertical,
+            (_, _) when y > 2.5 * x => SplitDirection.Horizontal,
+            _ => (SplitDirection)Rand.Next(Enum.GetValues(typeof(SplitDirection)).Length),
+        };
+    }
+
     private void GenerateTree(Room leaf, short depth)
     {
-        if ((leaf.x2 - leaf.x1) < 6 || (leaf.y2 - leaf.y1) < 6)
+        if (leaf.x2 - leaf.x1 < 6 || leaf.y2 - leaf.y1 < 6)
         {
             return; // It's too small
         }
@@ -197,94 +214,61 @@ public sealed class DungeonMaster // maybe split roles?
             return;
         }
 
-        int direction;
-        if ((leaf.x2 - leaf.x1) > 2.5 * (leaf.y2 - leaf.y1))
-        {
-            direction = 0;
-        }
-        else if ((leaf.y2 - leaf.y1) > 2.5 * (leaf.x2 - leaf.x1))
-        {
-            direction = 1;
-        }
-        else
-        {
-            direction = Rand.Next(2);
-        }
+        SplitDirection direction = ChooseDirection(leaf);
 
-        int factor;
-        if (direction == 0)
-        {
-            factor = Rand.Next(0, (int)(leaf.x2 - leaf.x1 - 6));
-            SplitVertically(leaf, factor, depth);
-        }
-        else
-        {
-            factor = Rand.Next(0, (int)(leaf.y2 - leaf.y1 - 6));
-            SplitHorizontally(leaf, factor, depth);
-        }
+
+        SplitRoom(leaf, direction, ++depth);
     }
 
-    private void SplitVertically(Room leaf, int factor, short depth)
+    private void SplitRoom(Room leaf, SplitDirection direction, short depth)
     {
         Room leafCopy = leaf;
-        leaf.x2 -= factor;
-        leafCopy.x1 = leaf.x2 + 1;
-        GenerateTree(leaf, ++depth);
+
+        int factor = 0;
+        switch (direction)
+        {
+            case SplitDirection.Vertical:
+                factor = Rand.Next(0, leaf.x2 - leaf.x1 - 6);
+                leaf.x2 -= factor;
+                leafCopy.x1 = leaf.x2 + 1;
+                break;
+            case SplitDirection.Horizontal:
+                factor = Rand.Next(0, leaf.y2 - leaf.y1 - 6);
+                leaf.y2 -= factor;
+                leafCopy.y1 = leaf.y2 + 1;
+                break;
+        }
+
+        GenerateTree(leaf, depth);
         GenerateTree(leafCopy, depth);
     }
 
-    private void SplitHorizontally(Room leaf, int factor, short depth)
+    private IEnumerable<(int, int)> TunnelBetween((int, int) start, (int, int) end)
     {
-        Room leafCopy = leaf;
-        leaf.y2 -= factor;
-        leafCopy.y1 = leaf.y2 + 1;
-        GenerateTree(leaf, ++depth);
-        GenerateTree(leafCopy, depth);
-    }
+        (int x1, int y1) = start;
+        (int x2, int y2) = end;
 
-
-    private IEnumerable<Tuple<int, int>> TunnelBetween(Tuple<int, int> start, Tuple<int, int> end)
-    {
-        int x1 = start.Item1;
-        int y1 = start.Item2;
-        int x2 = end.Item1;
-        int y2 = end.Item2;
-
-        int cornerX, cornerY;
-        if (Rand.Next(2) == 0)
-        {
-            cornerX = x2;
-            cornerY = y1;
-        }
-        else
-        {
-            cornerX = x1;
-            cornerY = y2;
-        }
+        (int cornerX, int cornerY) = Rand.Next(2) == 0 ? (x2, y1) : (x1, y2);
 
         foreach (Tuple<int, int> coord in FUtility.BresenhamLine(x1, y1, cornerX, cornerY))
         {
-            yield return coord;
+            yield return (coord.Item1, coord.Item2);
         }
 
         foreach (Tuple<int, int> coord in FUtility.BresenhamLine(cornerX, cornerY, x2, y2))
         {
-            yield return coord;
+            yield return (coord.Item1, coord.Item2);
         }
     }
 
     private void ConnectRoomWalls(Room room1, Room room2)
     {
-        int x1 = room1.x1 + (room1.x2 - room1.x1) / 2;
-        int y1 = room1.y1 + (room1.y2 - room1.y1) / 2;
-        int x2 = room2.x1 + (room2.x2 - room2.x1) / 2;
-        int y2 = room2.y1 + (room2.y2 - room2.y1) / 2;
+        (float x1, float y1) = room1.Center();
+        (float x2, float y2) = room2.Center();
 
-        foreach (Tuple<int, int> coord in TunnelBetween(Tuple.Create(x1, y1), Tuple.Create(x2, y2)))
+        foreach ((int x, int y) in TunnelBetween(((int)x1, (int)y1), ((int)x2, (int)y2)))
         {
-            (int x, int y) = coord;
-
-            if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileWidth)
+            if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileHeight)
             {
                 Tiles[x, y] = Tunnel;
             }
