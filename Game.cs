@@ -47,8 +47,7 @@ public sealed class Game
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_R))
         {
-            State.Cursor *= 0;
-            State.Camera.zoom = 1.0f;
+            State.Reset();
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_MINUS))

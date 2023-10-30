@@ -129,6 +129,7 @@ public sealed class DungeonMaster // maybe split roles?
 
     private void GenerateTree()
     {
+        Corridors.Clear();
         Rooms.Clear();
         Rectangle map = new Rectangle(0, 0, Settings.TileWidth - 1, Settings.TileHeight - 1);
         GenerateTree(map, 0);
