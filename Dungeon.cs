@@ -5,124 +5,130 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-// TODO: implement procedural generation postprocessing
-/// <summary>
-/// Generates tree of rooms using binary space partition
-/// Makes routes from room to room, in a way so every room has a way into other
-/// Clears random rooms if there are too much
-/// Makes postprocessing, e.g. places monsters, exit and player spawn tile
-/// </summary>
-public sealed class DungeonMaster // maybe split roles?
+public record struct Room(int x1, int y1, int x2, int y2)
 {
-    private record struct Room(int x1, int y1, int x2, int y2)
+    public IEnumerable<int> HWallXCoords()
     {
-        public IEnumerable<int> HWallXCoords()
-        {
-            for (int i = x1 + 2; i < x2 - 1; i++)
-                yield return i;
-        }
-
-        public IEnumerable<int> VWallYCoords()
-        {
-            for (int i = y1 + 2; i < y2 - 1; i++)
-                yield return i;
-        }
-
-        public (float, float) Center() => (
-            x1 + (float)(x2 - x1) / 2,
-            y1 + (float)(y2 - y1) / 2
-        );
+        for (int i = x1 + 2; i < x2 - 1; i++)
+            yield return i;
     }
 
-    private readonly record struct Edge(Room Room1, Room Room2);
-
-    enum SplitDirection { Horizontal, Vertical }
-
-    const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
-    const int RoomCountThreshold = 13;
-
-    Random Rand = new Random();
-    // Tileset TileSet; // TODO: make thematic tilesets
-    ColoredTile HWall = new ColoredTile(Raylib.RED);
-    ColoredTile VWall = new ColoredTile(Raylib.BLACK);
-    ColoredTile Corner = new ColoredTile(Raylib.YELLOW);
-    ColoredTile Floor = new ColoredTile(Raylib.RAYWHITE);
-    ColoredTile Door = new ColoredTile(Raylib.BROWN);
-    ColoredTile Tunnel = new ColoredTile(Raylib.VIOLET);
-    List<Room> Rooms = new List<Room>();
-    List<Edge> Corridors = new List<Edge>();
-    ITile[,] Tiles;
-
-    public void Generate()
+    public IEnumerable<int> VWallYCoords()
     {
-        GenerateTree();
-        GenerateSpanningTree();
-        FreeRandomRooms();
-        WriteTiles();
-        PostProcTiles();
+        for (int i = y1 + 2; i < y2 - 1; i++)
+            yield return i;
     }
 
-    private void PostProcTiles()
+    public (float, float) Center() => (
+        x1 + (float)(x2 - x1) / 2,
+        y1 + (float)(y2 - y1) / 2
+    );
+}
+
+public readonly record struct Edge(Room Room1, Room Room2);
+
+public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
+{
+    DumbTileSet DumbTileSet = new DumbTileSet();
+
+    public void PostProcTiles(ITileSet TileSet, List<Room> Rooms)
     {
         foreach (Room room in Rooms)
         {
-            Tiles[room.x1 + 1, room.y1 + 1] = Corner;
-            Tiles[room.x2 - 1, room.y1 + 1] = Corner;
-            Tiles[room.x1 + 1, room.y2 - 1] = Corner;
-            Tiles[room.x2 - 1, room.y2 - 1] = Corner;
+            Tiles[room.x1 + 1, room.y1 + 1] = TileSet.LTCorner;
+            Tiles[room.x2 - 1, room.y1 + 1] = TileSet.RTCorner;
+            Tiles[room.x1 + 1, room.y2 - 1] = TileSet.LBCorner;
+            Tiles[room.x2 - 1, room.y2 - 1] = TileSet.RBCorner;
 
             foreach (int i in room.HWallXCoords())
             {
-                if (Tiles[i, room.y1 + 2].Equals(Tunnel))
+                foreach (int j in room.VWallYCoords())
                 {
-                    Tiles[i, room.y1 + 1] = Door;
+                    Tiles[i, j] = TileSet.Floor;
                 }
-                if (Tiles[i, room.y2 - 2].Equals(Tunnel))
+            }
+
+            foreach (int i in room.HWallXCoords())
+            {
+                if (Tiles[i, room.y1 + 2].Equals(DumbTileSet.Path))
                 {
-                    Tiles[i, room.y2 - 1] = Door;
+                    Tiles[i, room.y1 + 1] = TileSet.TDoor;
+                }
+                else
+                {
+                    Tiles[i, room.y1 + 1] = TileSet.HWall;
+                }
+
+                if (Tiles[i, room.y2 - 2].Equals(DumbTileSet.Path))
+                {
+                    Tiles[i, room.y2 - 1] = TileSet.BDoor;
+                }
+                else
+                {
+                    Tiles[i, room.y2 - 1] = TileSet.HWall;
                 }
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                if (Tiles[room.x1 + 2, i].Equals(Tunnel))
+                if (Tiles[room.x1 + 2, i].Equals(DumbTileSet.Path))
                 {
-                    Tiles[room.x1 + 1, i] = Door;
+                    Tiles[room.x1 + 1, i] = TileSet.LDoor;
                 }
-                if (Tiles[room.x2 - 2, i].Equals(Tunnel))
+                else
                 {
-                    Tiles[room.x2 - 1, i] = Door;
+                    Tiles[room.x1 + 1, i] = TileSet.VWall;
+                }
+                if (Tiles[room.x2 - 2, i].Equals(DumbTileSet.Path))
+                {
+                    Tiles[room.x2 - 1, i] = TileSet.RDoor;
+                }
+                else
+                {
+                    Tiles[room.x2 - 1, i] = TileSet.VWall;
                 }
             }
         }
+
     }
+}
+
+public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
+{
+    const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
+    const int RoomCountThreshold = 13;
+    public List<Edge> Corridors = new List<Edge>();
+    public List<Room> Rooms = new List<Room>();
+    DumbTileSet DumbTileSet = new DumbTileSet();
+
+    enum SplitDirection { Horizontal, Vertical }
 
     private void WriteTiles()
     {
         foreach (Room room in Rooms)
         {
-            Tiles[room.x1 + 1, room.y1 + 1] = Corner;
-            Tiles[room.x2 - 1, room.y1 + 1] = Corner;
-            Tiles[room.x1 + 1, room.y2 - 1] = Corner;
-            Tiles[room.x2 - 1, room.y2 - 1] = Corner;
+            Tiles[room.x1 + 1, room.y1 + 1] = DumbTileSet.LTCorner;
+            Tiles[room.x2 - 1, room.y1 + 1] = DumbTileSet.RTCorner;
+            Tiles[room.x1 + 1, room.y2 - 1] = DumbTileSet.LBCorner;
+            Tiles[room.x2 - 1, room.y2 - 1] = DumbTileSet.RTCorner;
 
             foreach (int i in room.HWallXCoords())
             {
-                Tiles[i, room.y2 - 1] = HWall;
-                Tiles[i, room.y1 + 1] = HWall;
+                Tiles[i, room.y2 - 1] = DumbTileSet.HWall;
+                Tiles[i, room.y1 + 1] = DumbTileSet.HWall;
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                Tiles[room.x1 + 1, i] = VWall;
-                Tiles[room.x2 - 1, i] = VWall;
+                Tiles[room.x1 + 1, i] = DumbTileSet.VWall;
+                Tiles[room.x2 - 1, i] = DumbTileSet.VWall;
             }
 
             foreach (int i in room.HWallXCoords())
             {
                 foreach (int j in room.VWallYCoords())
                 {
-                    Tiles[i, j] = Floor;
+                    Tiles[i, j] = DumbTileSet.Floor;
                 }
             }
         }
@@ -131,6 +137,14 @@ public sealed class DungeonMaster // maybe split roles?
         {
             ConnectRoomWalls(corridor.Room1, corridor.Room2);
         }
+    }
+
+    public void Generate()
+    {
+        GenerateTree();
+        GenerateSpanningTree();
+        FreeRandomRooms();
+        WriteTiles();
     }
 
     private void GenerateSpanningTree()
@@ -270,13 +284,30 @@ public sealed class DungeonMaster // maybe split roles?
         {
             if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileHeight)
             {
-                Tiles[x, y] = Tunnel;
+                Tiles[x, y] = DumbTileSet.Path;
             }
         }
+    }
+}
+
+public sealed class DungeonMaster
+{
+    Random Rand = new Random();
+    public ITileSet TileSet = new TestingTileSet();
+    ITile[,] Tiles;
+    DungeonArchitect Architect;
+    DungeonMainFrame MainFrame;
+
+    public void Generate()
+    {
+        Architect.Generate();
+        MainFrame.PostProcTiles(TileSet, Architect.Rooms);
     }
 
     public DungeonMaster(ITile[,] tiles) // Take reference to a player position?
     {
         Tiles = tiles;
+        Architect = new DungeonArchitect(Rand, tiles);
+        MainFrame = new DungeonMainFrame(Rand, tiles);
     }
 }
