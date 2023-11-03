@@ -7,15 +7,17 @@ namespace RoguePound;
 
 public record struct Room(int x1, int y1, int x2, int y2)
 {
+    public const int WallOffset = 2;
+
     public IEnumerable<int> HWallXCoords()
     {
-        for (int i = x1 + 2; i < x2 - 1; i++)
+        for (int i = x1 + WallOffset + 1; i < x2 - WallOffset; i++)
             yield return i;
     }
 
     public IEnumerable<int> VWallYCoords()
     {
-        for (int i = y1 + 2; i < y2 - 1; i++)
+        for (int i = y1 + WallOffset + 1; i < y2 - WallOffset; i++)
             yield return i;
     }
 
@@ -35,10 +37,10 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
     {
         foreach (Room room in Rooms)
         {
-            Tiles[room.x1 + 1, room.y1 + 1] = TileSet.LTCorner;
-            Tiles[room.x2 - 1, room.y1 + 1] = TileSet.RTCorner;
-            Tiles[room.x1 + 1, room.y2 - 1] = TileSet.LBCorner;
-            Tiles[room.x2 - 1, room.y2 - 1] = TileSet.RBCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y1 + Room.WallOffset] = TileSet.LTCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y1 + Room.WallOffset] = TileSet.RTCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y2 - Room.WallOffset] = TileSet.LBCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y2 - Room.WallOffset] = TileSet.RBCorner;
 
             foreach (int i in room.HWallXCoords())
             {
@@ -50,42 +52,42 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
 
             foreach (int i in room.HWallXCoords())
             {
-                if (Tiles[i, room.y1 + 2].Equals(DumbTileSet.Path))
+                if (Tiles[i, room.y1 + Room.WallOffset + 1].Equals(DumbTileSet.Path))
                 {
-                    Tiles[i, room.y1 + 1] = TileSet.TDoor;
+                    Tiles[i, room.y1 + Room.WallOffset] = TileSet.TDoor;
                 }
                 else
                 {
-                    Tiles[i, room.y1 + 1] = TileSet.HWall;
+                    Tiles[i, room.y1 + Room.WallOffset] = TileSet.HWall;
                 }
 
-                if (Tiles[i, room.y2 - 2].Equals(DumbTileSet.Path))
+                if (Tiles[i, room.y2 - Room.WallOffset - 1].Equals(DumbTileSet.Path))
                 {
-                    Tiles[i, room.y2 - 1] = TileSet.BDoor;
+                    Tiles[i, room.y2 - Room.WallOffset] = TileSet.BDoor;
                 }
                 else
                 {
-                    Tiles[i, room.y2 - 1] = TileSet.HWall;
+                    Tiles[i, room.y2 - Room.WallOffset] = TileSet.HWall;
                 }
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                if (Tiles[room.x1 + 2, i].Equals(DumbTileSet.Path))
+                if (Tiles[room.x1 + Room.WallOffset + 1, i].Equals(DumbTileSet.Path))
                 {
-                    Tiles[room.x1 + 1, i] = TileSet.LDoor;
+                    Tiles[room.x1 + Room.WallOffset, i] = TileSet.LDoor;
                 }
                 else
                 {
-                    Tiles[room.x1 + 1, i] = TileSet.VWall;
+                    Tiles[room.x1 + Room.WallOffset, i] = TileSet.VWall;
                 }
-                if (Tiles[room.x2 - 2, i].Equals(DumbTileSet.Path))
+                if (Tiles[room.x2 - Room.WallOffset - 1, i].Equals(DumbTileSet.Path))
                 {
-                    Tiles[room.x2 - 1, i] = TileSet.RDoor;
+                    Tiles[room.x2 - Room.WallOffset, i] = TileSet.RDoor;
                 }
                 else
                 {
-                    Tiles[room.x2 - 1, i] = TileSet.VWall;
+                    Tiles[room.x2 - Room.WallOffset, i] = TileSet.VWall;
                 }
             }
         }
@@ -107,21 +109,21 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
     {
         foreach (Room room in Rooms)
         {
-            Tiles[room.x1 + 1, room.y1 + 1] = DumbTileSet.LTCorner;
-            Tiles[room.x2 - 1, room.y1 + 1] = DumbTileSet.RTCorner;
-            Tiles[room.x1 + 1, room.y2 - 1] = DumbTileSet.LBCorner;
-            Tiles[room.x2 - 1, room.y2 - 1] = DumbTileSet.RTCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y1 + Room.WallOffset] = DumbTileSet.LTCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y1 + Room.WallOffset] = DumbTileSet.RTCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y2 - Room.WallOffset] = DumbTileSet.LBCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y2 - Room.WallOffset] = DumbTileSet.RTCorner;
 
             foreach (int i in room.HWallXCoords())
             {
-                Tiles[i, room.y2 - 1] = DumbTileSet.HWall;
-                Tiles[i, room.y1 + 1] = DumbTileSet.HWall;
+                Tiles[i, room.y2 - Room.WallOffset] = DumbTileSet.HWall;
+                Tiles[i, room.y1 + Room.WallOffset] = DumbTileSet.HWall;
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                Tiles[room.x1 + 1, i] = DumbTileSet.VWall;
-                Tiles[room.x2 - 1, i] = DumbTileSet.VWall;
+                Tiles[room.x1 + Room.WallOffset, i] = DumbTileSet.VWall;
+                Tiles[room.x2 - Room.WallOffset, i] = DumbTileSet.VWall;
             }
 
             foreach (int i in room.HWallXCoords())
@@ -217,7 +219,8 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
 
     private void GenerateTree(Room leaf, short depth)
     {
-        if (leaf.x2 - leaf.x1 < 6 || leaf.y2 - leaf.y1 < 6)
+        if (leaf.x2 - leaf.x1 < Room.WallOffset * 3 + 2
+        || leaf.y2 - leaf.y1 < Room.WallOffset * 3 + 2)
         {
             return; // It's too small
         }
@@ -238,18 +241,21 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
     {
         Room leafCopy = leaf;
 
-        int factor = 0;
         switch (direction)
         {
             case SplitDirection.Vertical:
-                factor = Rand.Next(0, leaf.x2 - leaf.x1 - 6);
-                leaf.x2 -= factor;
-                leafCopy.x1 = leaf.x2 + 1;
+                {
+                    int factor = Rand.Next(0, leaf.x2 - leaf.x1 - Room.WallOffset * 2 - 2);
+                    leaf.x2 -= factor;
+                    leafCopy.x1 = leaf.x2 + 1;
+                }
                 break;
             case SplitDirection.Horizontal:
-                factor = Rand.Next(0, leaf.y2 - leaf.y1 - 6);
-                leaf.y2 -= factor;
-                leafCopy.y1 = leaf.y2 + 1;
+                {
+                    int factor = Rand.Next(0, leaf.y2 - leaf.y1 - Room.WallOffset * 2 - 2);
+                    leaf.y2 -= factor;
+                    leafCopy.y1 = leaf.y2 + 1;
+                }
                 break;
         }
 
