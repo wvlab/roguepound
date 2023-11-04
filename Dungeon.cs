@@ -9,17 +9,9 @@ public record struct Room(int x1, int y1, int x2, int y2)
 {
     public const int WallOffset = 2;
 
-    public IEnumerable<int> HWallXCoords()
-    {
-        for (int i = x1 + WallOffset + 1; i < x2 - WallOffset; i++)
-            yield return i;
-    }
+    public IEnumerable<int> HWallXCoords() => Enumerable.Range(x1 + WallOffset + 1, x2 - x1 - 2 * WallOffset - 1);
 
-    public IEnumerable<int> VWallYCoords()
-    {
-        for (int i = y1 + WallOffset + 1; i < y2 - WallOffset; i++)
-            yield return i;
-    }
+    public IEnumerable<int> VWallYCoords() => Enumerable.Range(y1 + WallOffset + 1, y2 - y1 - 2 * WallOffset - 1);
 
     public (float, float) Center() => (
         x1 + (float)(x2 - x1) / 2,
@@ -81,6 +73,7 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
                 {
                     Tiles[room.x1 + Room.WallOffset, i] = TileSet.VWall;
                 }
+
                 if (Tiles[room.x2 - Room.WallOffset - 1, i].Equals(DumbTileSet.Path))
                 {
                     Tiles[room.x2 - Room.WallOffset, i] = TileSet.RDoor;
@@ -232,7 +225,6 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
         }
 
         SplitDirection direction = ChooseDirection(leaf);
-
 
         SplitRoom(leaf, direction, ++depth);
     }
