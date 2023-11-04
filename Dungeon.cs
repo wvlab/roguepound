@@ -5,20 +5,6 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-public record struct Room(int x1, int y1, int x2, int y2)
-{
-    public const int WallOffset = 2;
-
-    public IEnumerable<int> HWallXCoords() => Enumerable.Range(x1 + WallOffset + 1, x2 - x1 - 2 * WallOffset - 1);
-
-    public IEnumerable<int> VWallYCoords() => Enumerable.Range(y1 + WallOffset + 1, y2 - y1 - 2 * WallOffset - 1);
-
-    public (float, float) Center() => (
-        x1 + (float)(x2 - x1) / 2,
-        y1 + (float)(y2 - y1) / 2
-    );
-}
-
 public readonly record struct Edge(Room Room1, Room Room2);
 
 public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
