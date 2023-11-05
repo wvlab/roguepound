@@ -91,7 +91,7 @@ public sealed class Game
         Raylib.ClearBackground(Raylib.BLACK);
         Raylib.BeginMode2D(State.Camera);
 
-        Artist.DrawTiles(State.Tiles);
+        Artist.DrawDungeon(State.Tiles);
 
         Raylib.EndMode2D();
 

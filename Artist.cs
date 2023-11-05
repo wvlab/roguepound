@@ -7,13 +7,13 @@ namespace RoguePound;
 
 public interface IArtist
 {
-    void DrawTiles(in ITile[,] tiles);
+    void DrawDungeon(in ITile[,] DungeonTiles);
 }
 
 
-public sealed class Artist : IArtist
+public class Artist : IArtist
 {
-    public void DrawTiles(in ITile[,] tiles)
+    public void DrawDungeon(in ITile[,] dungeonTiles)
     {
         for (int x = 0; x < Settings.TileWidth; x += 1)
         {
@@ -23,10 +23,32 @@ public sealed class Artist : IArtist
                     x * Settings.TileSize,
                     y * Settings.TileSize
                 );
-                tiles[x, y].Draw(vec);
+                dungeonTiles[x, y].Draw(vec);
             }
         }
     }
+
+    public void DrawGrid()
+    {
+        for (int i = 0; i < Settings.TileWidth + 1; i++)
+        {
+            Raylib.DrawLineV(
+                new Vector2(Settings.TileSize * i, 0),
+                new Vector2(Settings.TileSize * i, Settings.TileHeight * Settings.TileSize),
+                Raylib.LIGHTGRAY
+            );
+        }
+
+        for (int i = 0; i < Settings.TileHeight + 1; i++)
+        {
+            Raylib.DrawLineV(
+                new Vector2(0, Settings.TileSize * i),
+                new Vector2(Settings.TileWidth * Settings.TileSize, Settings.TileSize * i),
+                Raylib.LIGHTGRAY
+            );
+        }
+    }
+
 }
 
 
