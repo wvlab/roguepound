@@ -22,7 +22,7 @@ module FUtility =
                     x <- x'
                     y <- y'
                     err <- err'
-                    Some((x, y), ()))
+                    Some(struct (x, y), ()))
             ()
 
     let EuclideanDistance (x1: double) (y1: double) (x2: double) (y2: double) =
@@ -30,3 +30,5 @@ module FUtility =
         let y' = y2 - y1
 
         sqrt (x' * x' + y' * y')
+
+    let BoundInt (lower: int) (upper: int) (x: int) = min upper (max lower x)

@@ -241,30 +241,83 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
         GenerateTree(leafCopy, depth);
     }
 
-    private IEnumerable<(int, int)> TunnelBetween((int, int) start, (int, int) end)
+    private IEnumerable<(int, int)> TunnelBetween(Room room1, Room room2)
     {
-        (int x1, int y1) = start;
-        (int x2, int y2) = end;
+        (float rx1, float ry1) = room1.Center();
+        (float rx2, float ry2) = room2.Center();
+        int x1 = (int)rx1;
+        int y1 = (int)ry1;
+        int x2 = (int)rx2;
+        int y2 = (int)ry2;
 
         (int cornerX, int cornerY) = Rand.Next(2) == 0 ? (x2, y1) : (x1, y2);
 
-        foreach (Tuple<int, int> coord in FUtility.BresenhamLine(x1, y1, cornerX, cornerY))
+        IEnumerable<(int, int)> DirectWay = FUtility.BresenhamLine(x1, y1, cornerX, cornerY)
+            .Concat(FUtility.BresenhamLine(cornerX, cornerY, x2, y2));
+
+        (int, int) temp = (0, 0);
+        int xOffset = 0, yOffset = 0;
+        int offsetTime = 0;
+        Room prRoom = new Room(0, 0, 0, 0);
+        foreach ((int x, int y) in DirectWay)
         {
-            yield return (coord.Item1, coord.Item2);
+            if (offsetTime <= 0)
+            {
+                foreach (Room room in Rooms.Where(r => !r.Equals(room1) && !r.Equals(room2)))
+                {
+                    if (room.Equals(prRoom))
+                    {
+                        continue;
+                    }
+                    if ((room.x1 <= x && x <= room.x2) && (y == room.y1 || y == room.y2))
+                    {
+                        xOffset = (Rand.Next(2) == 0 ? room.x1 : room.x2) - x;
+                        int yDelta = room.y2 - room.y1;
+                        offsetTime = Math.Max(yDelta, Math.Abs(y - cornerY));
+                        prRoom = room;
+                    }
+                    else
+                    if ((room.y1 <= y && y <= room.y2) && (x == room.x1 || x == room.x2))
+                    {
+                        yOffset = (Rand.Next(2) == 0 ? room.y1 : room.y2) - y;
+                        offsetTime = room.x2 - room.x1;
+                        prRoom = room;
+                    }
+                    if (room.Equals(prRoom)) foreach ((int mx, int my) in FUtility.BresenhamLine(x + xOffset, y + yOffset, x, y))
+                        {
+                            yield return (mx, my);
+                        }
+
+                }
+            }
+
+            temp = (x + FUtility.BoundInt(0, 1, offsetTime) * xOffset, y + FUtility.BoundInt(0, 1, offsetTime) * yOffset);
+
+            if (offsetTime-- == 0)
+            {
+                foreach ((int mx, int my) in FUtility.BresenhamLine(x, y, x + xOffset, y + yOffset))
+                {
+                    yield return (mx, my);
+                }
+                xOffset = 0;
+                yOffset = 0;
+            }
+
+            yield return temp;
         }
 
-        foreach (Tuple<int, int> coord in FUtility.BresenhamLine(cornerX, cornerY, x2, y2))
+        if (offsetTime >= 0)
         {
-            yield return (coord.Item1, coord.Item2);
+            foreach ((int x, int y) in FUtility.BresenhamLine(temp.Item1, temp.Item2, x2, y2))
+            {
+                yield return (x, y);
+            }
         }
     }
 
-    private void ConnectRoomWalls(Room room1, Room room2)
+    private void ConnectRooms(Room room1, Room room2)
     {
-        (float x1, float y1) = room1.Center();
-        (float x2, float y2) = room2.Center();
-
-        foreach ((int x, int y) in TunnelBetween(((int)x1, (int)y1), ((int)x2, (int)y2)))
+        foreach ((int x, int y) in TunnelBetween(room1, room2))
         {
             if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileHeight)
             {
