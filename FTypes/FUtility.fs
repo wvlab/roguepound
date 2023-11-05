@@ -8,19 +8,24 @@ module FUtility =
         let dy = abs (y2 - y1)
         let sx = if x1 < x2 then 1 else -1
         let sy = if y1 < y2 then 1 else -1
-        let err = dx - dy
+        let mutable err = dx - dy
+        let mutable x = x1
+        let mutable y = y1
 
-        let aux (x, y, err) =
-            if (x = x2 && y = y2) || (x * sx > x2 * sx) then
-                None
-            else
-                let e2 = 2 * err
-                let x' = if e2 > -dy then x + sx else x
-                let y' = if e2 < dx then y + sy else y
-                let err' = if e2 > -dy && e2 < dx then err + dx - dy else err
-                Some(struct (x, y), (x', y', err'))
-
-        Seq.unfold aux (x1, y1, err)
+        Seq.unfold
+            (fun _ ->
+                if x = x2 && y = y2 then
+                    None
+                else
+                    let e2 = 2 * err
+                    let x' = if e2 > -dy then x + sx else x
+                    let y' = if e2 < dx then y + sy else y
+                    let err' = if e2 > -dy && e2 < dx then err + dx - dy else err
+                    x <- x'
+                    y <- y'
+                    err <- err'
+                    if x * sx > x2 * sx then None else Some(struct (x, y), ()))
+            ()
 
     let EuclideanDistance (x1: double) (y1: double) (x2: double) (y2: double) =
         let x' = x2 - x1

@@ -22,14 +22,6 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
 
             foreach (int i in room.HWallXCoords())
             {
-                foreach (int j in room.VWallYCoords())
-                {
-                    Tiles[i, j] = TileSet.Floor;
-                }
-            }
-
-            foreach (int i in room.HWallXCoords())
-            {
                 if (Tiles[i, room.y1 + Room.WallOffset + 1].Equals(DumbTileSet.Path)
                 && (Tiles[i, room.y1 + Room.WallOffset - 1].Equals(DumbTileSet.Path)))
                 {
@@ -73,8 +65,14 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
                     Tiles[room.x2 - Room.WallOffset, i] = TileSet.VWall;
                 }
             }
+            foreach (int i in room.HWallXCoords())
+            {
+                foreach (int j in room.VWallYCoords())
+                {
+                    Tiles[i, j] = TileSet.Floor;
+                }
+            }
         }
-
     }
 }
 
@@ -279,6 +277,7 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
                     if ((room.x1 <= x && x <= room.x2) && (y == room.y1 || y == room.y2))
                     {
                         xOffset = (Rand.Next(2) == 0 ? room.x1 : room.x2) - x;
+                        yOffset = 0;
                         int yDelta = room.y2 - room.y1;
                         // I just dunno what it really means, i already forgot
                         offsetTime = Math.Max(yDelta, Math.Abs(y - cornerY));
@@ -287,6 +286,7 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
                     if ((room.y1 <= y && y <= room.y2) && (x == room.x1 || x == room.x2))
                     {
                         yOffset = (Rand.Next(2) == 0 ? room.y1 : room.y2) - y;
+                        xOffset = 0;
                         int xDelta = room.x2 - room.x1;
                         // offsetTime = Math.Max(xDelta, Math.Abs(x - cornerX));
                         offsetTime = xDelta; // it gives better results as i've seen
@@ -296,6 +296,7 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
                         continue;
                     }
 
+                    prRoom = room;
                     foreach ((int mx, int my) in FUtility.BresenhamLine(x + xOffset, y + yOffset, x, y))
                     {
                         yield return (mx, my);
@@ -332,6 +333,12 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
         {
             if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileHeight)
             {
+                foreach (Room room in Rooms)
+                {
+                    if ((x == room.x1 + Room.WallOffset || x == room.x2 - Room.WallOffset)
+                    && (y == room.y1 + Room.WallOffset || y == room.y2 - Room.WallOffset))
+                        throw new Exception("DUNGEON IS BROKEN");
+                }
                 Tiles[x, y] = DumbTileSet.Path;
             }
         }
@@ -345,17 +352,31 @@ public sealed class DungeonMaster
     ITile[,] Tiles;
     DungeonArchitect Architect;
     DungeonMainFrame MainFrame;
+    Action ResetTiles;
 
     public void Generate()
     {
-        Architect.Generate();
+        while (true)
+        {
+            try
+            {
+                Architect.Generate();
+                break;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                ResetTiles();
+            }
+        }
         MainFrame.PostProcTiles(TileSet, Architect.Rooms);
     }
 
-    public DungeonMaster(ITile[,] tiles) // Take reference to a player position?
+    public DungeonMaster(Action resetTiles, ITile[,] tiles) // Take reference to a player position?
     {
         Tiles = tiles;
         Architect = new DungeonArchitect(Rand, tiles);
         MainFrame = new DungeonMainFrame(Rand, tiles);
+        ResetTiles = resetTiles;
     }
 }

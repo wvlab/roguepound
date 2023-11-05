@@ -53,7 +53,7 @@ public struct GameState : IState
 
     public GameState()
     {
-        Dungeon = new DungeonMaster(Tiles);
+        Dungeon = new DungeonMaster(ResetTiles, Tiles);
         Reset();
     }
 }
