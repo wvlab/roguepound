@@ -120,12 +120,14 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
 
         foreach (Edge corridor in Corridors)
         {
-            ConnectRoomWalls(corridor.Room1, corridor.Room2);
+            ConnectRooms(corridor.Room1, corridor.Room2);
         }
     }
 
     public void Generate()
     {
+        Rooms.Clear();
+        Corridors.Clear();
         GenerateTree();
         GenerateSpanningTree();
         FreeRandomRooms();
@@ -173,8 +175,6 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
 
     private void GenerateTree()
     {
-        Corridors.Clear();
-        Rooms.Clear();
         Room map = new Room(0, 0, Settings.TileWidth - 1, Settings.TileHeight - 1);
         GenerateTree(map, 0);
     }
@@ -245,6 +245,7 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
         GenerateTree(leafCopy, depth);
     }
 
+    // TODO: MAKE IT MORE PRETTY, PLEASE
     private IEnumerable<(int, int)> TunnelBetween(Room room1, Room room2)
     {
         (float rx1, float ry1) = room1.Center();
@@ -259,7 +260,7 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
         IEnumerable<(int, int)> DirectWay = FUtility.BresenhamLine(x1, y1, cornerX, cornerY)
             .Concat(FUtility.BresenhamLine(cornerX, cornerY, x2, y2));
 
-        (int, int) temp = (0, 0);
+        (int, int) prCoords = (0, 0);
         int xOffset = 0, yOffset = 0;
         int offsetTime = 0;
         Room prRoom = new Room(0, 0, 0, 0);
@@ -271,31 +272,39 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
                 {
                     if (room.Equals(prRoom))
                     {
-                        continue;
+                        continue; // it doesn't need to do it second time
                     }
+
+                    // TODO: maybe it could be a function?
                     if ((room.x1 <= x && x <= room.x2) && (y == room.y1 || y == room.y2))
                     {
                         xOffset = (Rand.Next(2) == 0 ? room.x1 : room.x2) - x;
                         int yDelta = room.y2 - room.y1;
+                        // I just dunno what it really means, i already forgot
                         offsetTime = Math.Max(yDelta, Math.Abs(y - cornerY));
-                        prRoom = room;
                     }
                     else
                     if ((room.y1 <= y && y <= room.y2) && (x == room.x1 || x == room.x2))
                     {
                         yOffset = (Rand.Next(2) == 0 ? room.y1 : room.y2) - y;
-                        offsetTime = room.x2 - room.x1;
-                        prRoom = room;
+                        int xDelta = room.x2 - room.x1;
+                        // offsetTime = Math.Max(xDelta, Math.Abs(x - cornerX));
+                        offsetTime = xDelta; // it gives better results as i've seen
                     }
-                    if (room.Equals(prRoom)) foreach ((int mx, int my) in FUtility.BresenhamLine(x + xOffset, y + yOffset, x, y))
-                        {
-                            yield return (mx, my);
-                        }
+                    else
+                    {
+                        continue;
+                    }
 
+                    foreach ((int mx, int my) in FUtility.BresenhamLine(x + xOffset, y + yOffset, x, y))
+                    {
+                        yield return (mx, my);
+                    }
                 }
             }
 
-            temp = (x + FUtility.BoundInt(0, 1, offsetTime) * xOffset, y + FUtility.BoundInt(0, 1, offsetTime) * yOffset);
+            prCoords = (x + FUtility.BoundInt(0, 1, offsetTime) * xOffset, y + FUtility.BoundInt(0, 1, offsetTime) * yOffset);
+            yield return prCoords;
 
             if (offsetTime-- == 0)
             {
@@ -306,13 +315,11 @@ public sealed record class DungeonArchitect(Random Rand, ITile[,] Tiles)
                 xOffset = 0;
                 yOffset = 0;
             }
-
-            yield return temp;
         }
 
         if (offsetTime >= 0)
         {
-            foreach ((int x, int y) in FUtility.BresenhamLine(temp.Item1, temp.Item2, x2, y2))
+            foreach ((int x, int y) in FUtility.BresenhamLine(prCoords.Item1, prCoords.Item2, x2, y2))
             {
                 yield return (x, y);
             }
