@@ -30,7 +30,8 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
 
             foreach (int i in room.HWallXCoords())
             {
-                if (Tiles[i, room.y1 + Room.WallOffset + 1].Equals(DumbTileSet.Path))
+                if (Tiles[i, room.y1 + Room.WallOffset + 1].Equals(DumbTileSet.Path)
+                && (Tiles[i, room.y1 + Room.WallOffset - 1].Equals(DumbTileSet.Path)))
                 {
                     Tiles[i, room.y1 + Room.WallOffset] = TileSet.TDoor;
                 }
@@ -39,7 +40,8 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
                     Tiles[i, room.y1 + Room.WallOffset] = TileSet.HWall;
                 }
 
-                if (Tiles[i, room.y2 - Room.WallOffset - 1].Equals(DumbTileSet.Path))
+                if (Tiles[i, room.y2 - Room.WallOffset + 1].Equals(DumbTileSet.Path)
+                && (Tiles[i, room.y2 - Room.WallOffset - 1].Equals(DumbTileSet.Path)))
                 {
                     Tiles[i, room.y2 - Room.WallOffset] = TileSet.BDoor;
                 }
@@ -51,7 +53,8 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
 
             foreach (int i in room.VWallYCoords())
             {
-                if (Tiles[room.x1 + Room.WallOffset + 1, i].Equals(DumbTileSet.Path))
+                if (Tiles[room.x1 + Room.WallOffset + 1, i].Equals(DumbTileSet.Path)
+                && (Tiles[room.x1 + Room.WallOffset - 1, i].Equals(DumbTileSet.Path)))
                 {
                     Tiles[room.x1 + Room.WallOffset, i] = TileSet.LDoor;
                 }
@@ -60,7 +63,8 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles)
                     Tiles[room.x1 + Room.WallOffset, i] = TileSet.VWall;
                 }
 
-                if (Tiles[room.x2 - Room.WallOffset - 1, i].Equals(DumbTileSet.Path))
+                if (Tiles[room.x2 - Room.WallOffset + 1, i].Equals(DumbTileSet.Path)
+                && (Tiles[room.x2 - Room.WallOffset - 1, i].Equals(DumbTileSet.Path)))
                 {
                     Tiles[room.x2 - Room.WallOffset, i] = TileSet.RDoor;
                 }
