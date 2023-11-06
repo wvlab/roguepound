@@ -18,29 +18,28 @@ public class ArtistPermissionException : Exception
 
 public class Artist : IArtist
 {
-    Permissions Perms = new Permissions();
-
-    private class Permissions
+    private class Permission
     {
-        public bool isAllowedToDraw = false;
-        public bool isIn2DWorld = false;
+        public bool isAllowed { get; set; } = false;
     }
+
+    private Permission permissionToDraw = new Permission();
+    private Permission permissionToDraw2D = new Permission();
 
     private void CheckPermissionToDraw()
     {
-        if (!Perms.isAllowedToDraw) throw new ArtistPermissionException("method must be used in DrawingEnvironment");
+        if (!permissionToDraw.isAllowed) throw new ArtistPermissionException("method must be used in DrawingEnvironment");
     }
 
     private void CheckPermissionToDraw2D()
     {
-        if (!Perms.isAllowedToDraw) throw new ArtistPermissionException("method must be used in World2DEnvironment");
+        if (!permissionToDraw2D.isAllowed) throw new ArtistPermissionException("method must be used in World2DEnvironment");
     }
 
-    public IDisposable DrawingEnvironment() => new _DrawingEnvironment(Perms);
-
-    private class _DrawingEnvironment : IDisposable
+    private class PermissionEnvironment : IDisposable
     {
-        private Permissions Permissions;
+        private Permission Permission;
+        private Action DisposeAction;
         private bool _disposedValue;
 
         public void Dispose()
@@ -54,55 +53,25 @@ public class Artist : IArtist
             {
                 if (disposing)
                 {
-                    Permissions.isAllowedToDraw = false;
-                    Raylib.EndDrawing();
+                    Permission.isAllowed = false;
+                    DisposeAction();
                 }
 
                 _disposedValue = true;
             }
         }
 
-        public _DrawingEnvironment(Permissions permissions)
+        public PermissionEnvironment(Permission permission, Action startAction, Action disposeAction)
         {
-            Permissions = permissions;
-            Permissions.isAllowedToDraw = true;
-            Raylib.BeginDrawing();
+            Permission = permission;
+            Permission.isAllowed = true;
+            DisposeAction = disposeAction;
+            startAction();
         }
     }
 
-    public IDisposable World2DEnvironment(Camera2D cam) =>  new _World2DEnvironment(Perms, cam);
-
-    private class _World2DEnvironment : IDisposable
-    {
-        private Permissions Permissions;
-        private bool _disposedValue;
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    Permissions.isIn2DWorld = false;
-                    Raylib.EndMode2D();
-                }
-
-                _disposedValue = true;
-            }
-        }
-
-        public _World2DEnvironment(Permissions permissions, Camera2D Camera)
-        {
-            Permissions = permissions;
-            Permissions.isIn2DWorld = true;
-            Raylib.BeginMode2D(Camera);
-        }
-    }
+    public IDisposable DrawingEnvironment() => new PermissionEnvironment(permissionToDraw, Raylib.BeginDrawing, Raylib.EndDrawing);
+    public IDisposable World2DEnvironment(Camera2D cam) => new PermissionEnvironment(permissionToDraw2D, () => Raylib.BeginMode2D(cam), Raylib.EndMode2D);
 
     public void DrawDungeon(in ITile[,] dungeonTiles)
     {
