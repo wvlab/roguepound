@@ -85,16 +85,16 @@ public sealed class Game
         }
 
         State.Camera.target = State.Cursor;
-        Raylib.BeginDrawing();
 
-        Raylib.ClearBackground(Raylib.BLACK);
-        Raylib.BeginMode2D(State.Camera);
+        using (Artist.DrawingEnvironment())
+        {
+            Raylib.ClearBackground(Raylib.BLACK);
 
-        Artist.DrawDungeon(State.Tiles);
-
-        Raylib.EndMode2D();
-
-        Raylib.EndDrawing();
+            using (Artist.World2DEnvironment(State.Camera))
+            {
+                Artist.DrawDungeon(State.Tiles);
+            }
+        }
     }
 
     public Game(Artist artist, GameLogic logic)
