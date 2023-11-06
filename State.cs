@@ -1,7 +1,5 @@
 using System.Numerics;
-using System.Collections.Generic;
 using Raylib_CsLo;
-using FunctionalRoguePound;
 
 namespace RoguePound;
 

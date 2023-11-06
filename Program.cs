@@ -1,13 +1,9 @@
-﻿using System.Numerics;
-using System.Collections.Generic;
-using Raylib_CsLo;
-using FunctionalRoguePound;
+﻿using Raylib_CsLo;
 
 namespace RoguePound;
 
 // TODO: implement movement
 // TODO: implement hud
-// TODO: implement tile sets
 // TODO: implement traps
 // TODO: implement enemies && ai
 // TODO: implement combat system
