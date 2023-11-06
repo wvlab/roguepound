@@ -14,7 +14,7 @@ public struct GameState : IState
     public ITile[,] Tiles = new ITile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();
     public Vector2 Cursor;
-    DungeonMaster Dungeon;
+    Dungeon.Master Dungeon;
 
     private void CenterCamera()
     {
@@ -51,7 +51,7 @@ public struct GameState : IState
 
     public GameState()
     {
-        Dungeon = new DungeonMaster(ResetTiles, Tiles);
+        Dungeon = new Dungeon.Master(ResetTiles, Tiles);
         Reset();
     }
 }
