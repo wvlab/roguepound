@@ -17,6 +17,23 @@ public sealed record class DungeonMainFrame(Random Rand, ITile[,] Tiles, List<Ro
         {
             ChangeRoomTiles(TileSet, room);
         }
+
+        ChangePathes(TileSet);
+    }
+
+    private void ChangePathes(ITileSet TileSet)
+    {
+        for (int x = 0; x < Settings.TileWidth; x++)
+        {
+            for (int y = 0; y < Settings.TileHeight; y++)
+            {
+                Tiles[x, y] = Tiles[x, y] switch
+                {
+                    DumbTileSet.DumbPath t => TileSet.Path,
+                    _ => Tiles[x, y]
+                };
+            }
+        }
     }
 
     private void ChangeRoomTiles(ITileSet TileSet, Room room)
