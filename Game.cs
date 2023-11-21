@@ -78,10 +78,11 @@ public sealed class Game
             State.Cursor = mouseWorldPos;
 
             State.Camera.zoom += wheel * 0.125f;
-            if (State.Camera.zoom < 0.125f)
-            {
-                State.Camera.zoom = 0.125f;
-            }
+        }
+
+        if (State.Camera.zoom < 0.250)
+        {
+            State.Camera.zoom = 0.250f;
         }
 
         State.Camera.target = State.Cursor;

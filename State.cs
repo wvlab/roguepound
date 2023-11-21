@@ -35,7 +35,7 @@ public struct GameState : IState
         {
             for (int y = 0; y < Settings.TileHeight; y += 1)
             {
-                Tiles[x, y] = new ColoredTile(Raylib.PURPLE);
+                Tiles[x, y] = new VoidTile();
             }
         }
     }

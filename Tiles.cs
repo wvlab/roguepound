@@ -22,7 +22,6 @@ public interface ITileSet
     ITile BDoor { get; }
     ITile LDoor { get; }
     ITile RDoor { get; }
-    ITile CDoor { get; }
 }
 
 
@@ -34,14 +33,21 @@ public readonly record struct VoidTile : ITile
 
 public readonly record struct ColoredTile(Color color) : ITile
 {
-    public void Draw(Vector2 destination)
-    {
+    public void Draw(Vector2 destination) =>
         Raylib.DrawRectangleV(
             destination,
             new Vector2(Settings.TileSize, Settings.TileSize),
             color
         );
-    }
+}
+
+public readonly record struct TextTile(string text) : ITile
+{
+    public void Draw(Vector2 destination) =>
+        Util.Draw.TextCentered(
+            destination + new Vector2(Settings.TileSize / 2, 0),
+            text
+        );
 }
 
 public readonly record struct DumbTileSet() : ITileSet
@@ -58,7 +64,6 @@ public readonly record struct DumbTileSet() : ITileSet
     public readonly struct DumbBDoor : ITile { public void Draw(Vector2 _) { } }
     public readonly struct DumbLDoor : ITile { public void Draw(Vector2 _) { } }
     public readonly struct DumbRDoor : ITile { public void Draw(Vector2 _) { } }
-    public readonly struct DumbCDoor : ITile { public void Draw(Vector2 _) { } }
 
     public ITile LTCorner { get; } = new DumbLTCorner();
     public ITile RTCorner { get; } = new DumbRTCorner();
@@ -72,7 +77,6 @@ public readonly record struct DumbTileSet() : ITileSet
     public ITile BDoor { get; } = new DumbBDoor();
     public ITile LDoor { get; } = new DumbLDoor();
     public ITile RDoor { get; } = new DumbRDoor();
-    public ITile CDoor { get; } = new DumbCDoor();
 }
 
 public readonly record struct TestingTileSet() : ITileSet
@@ -89,5 +93,20 @@ public readonly record struct TestingTileSet() : ITileSet
     public ITile BDoor { get; } = new ColoredTile(Raylib.DARKBROWN);
     public ITile LDoor { get; } = new ColoredTile(Raylib.BROWN);
     public ITile RDoor { get; } = new ColoredTile(Raylib.DARKBROWN);
-    public ITile CDoor { get; } = new ColoredTile(Raylib.BEIGE);
+}
+
+public readonly record struct ClassicTileSet() : ITileSet
+{
+    public ITile LTCorner { get; } = new TextTile("+");
+    public ITile RTCorner { get; } = new TextTile("+");
+    public ITile LBCorner { get; } = new TextTile("+");
+    public ITile RBCorner { get; } = new TextTile("+");
+    public ITile HWall { get; } = new TextTile("--");
+    public ITile VWall { get; } = new TextTile("|");
+    public ITile Floor { get; } = new TextTile(".");
+    public ITile Path { get; } = new TextTile("#");
+    public ITile TDoor { get; } = new TextTile("/");
+    public ITile BDoor { get; } = new TextTile("\\");
+    public ITile LDoor { get; } = new TextTile("\\");
+    public ITile RDoor { get; } = new TextTile("/");
 }
