@@ -2,6 +2,7 @@ namespace FunctionalRoguePound
 
 open Raylib_CsLo
 open System.Numerics
+open FunctionalRoguePound.FUtility
 
 type TileType =
     | LTCorner
@@ -82,10 +83,7 @@ type ClassicTileSet() =
                 | RDoor -> "/"
                 | _ -> "?"
 
-            let x' =
-                destination.X - (float32 (Raylib.MeasureText(text, Settings.TileSize))) / 2.0f
 
-            let draw () =
-                Raylib.DrawText(text, int x', int destination.Y, Settings.TileSize, Raylib.WHITE)
+            let draw = FDraw.TextCentered text destination Settings.TileSize Raylib.WHITE
 
             CommonThings.checkvoid draw (tile.Type)

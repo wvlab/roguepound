@@ -1,6 +1,7 @@
 using System.Numerics;
 using Raylib_CsLo;
 using FunctionalRoguePound;
+using FunctionalRoguePound.FUtility;
 
 namespace RoguePound;
 
@@ -116,5 +117,18 @@ public class Artist : IArtist
                 Raylib.LIGHTGRAY
             );
         }
+    }
+
+    public void DrawActor(IActor actor)
+    {
+        CheckPermissionToDraw();
+        CheckPermissionToDraw2D();
+
+        FDraw.TextCentered(
+            actor.letter,
+            actor.Position.ToVector2 * new Vector2(Settings.TileSize, Settings.TileSize),
+            Settings.TileSize,
+            Raylib.WHITE
+        ).Invoke(null);
     }
 }

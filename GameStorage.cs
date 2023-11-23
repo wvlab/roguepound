@@ -14,6 +14,7 @@ public struct GameStorage : IState
 {
     public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();
+    public Player Player = new Player();
     public Vector2 Cursor;
     Dungeon.Master Dungeon;
 
@@ -52,7 +53,7 @@ public struct GameStorage : IState
 
     public GameStorage()
     {
-        Dungeon = new Dungeon.Master(ResetTiles, Tiles);
+        Dungeon = new Dungeon.Master(ResetTiles, Tiles, Player.Position);
         Reset();
     }
 }

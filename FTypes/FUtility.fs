@@ -1,6 +1,14 @@
 ﻿namespace FunctionalRoguePound.FUtility
 
 open System
+open Raylib_CsLo
+open System.Numerics
+
+type Position =
+    { mutable X: int
+      mutable Y: int }
+
+    member this.ToVector2: Vector2 = new Vector2(float32 this.X, float32 this.Y)
 
 module FMath =
     let BresenhamLine (x1: int) (y1: int) (x2: int) (y2: int) =
@@ -34,3 +42,13 @@ module FMath =
         sqrt (x' * x' + y' * y')
 
     let BoundInt (lower: int) (upper: int) (x: int) = min upper (max lower x)
+
+
+module FDraw =
+    let TextCentered (text: string) (destination: Vector2) (fontsize: int) (color: Color) : unit -> unit =
+        let x' = destination.X - (float32 (Raylib.MeasureText(text, fontsize))) / 2.0f
+
+        let draw () =
+            Raylib.DrawText(text, int x', int destination.Y, fontsize, color)
+
+        draw

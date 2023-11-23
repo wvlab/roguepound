@@ -1,8 +1,9 @@
 using FunctionalRoguePound;
+using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
-internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Rooms)
+internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Rooms, Position player)
 {
     public void PostProcTiles()
     {
@@ -47,5 +48,12 @@ internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Ro
         {
             Tiles[x, y].Type = door;
         }
+    }
+
+    public void PlaceInteractivePieces()
+    {
+        Room spawn = Rooms[Rand.Next(Rooms.Count)];
+        player.X = Rand.Next(spawn.x1 + Room.WallOffset, spawn.x2 - Room.WallOffset);
+        player.Y = Rand.Next(spawn.y1 + Room.WallOffset, spawn.y2 - Room.WallOffset);
     }
 }

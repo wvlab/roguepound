@@ -18,7 +18,7 @@ public sealed class GameLogic : IGameLogic
 public sealed class Game
 {
     Settings Settings = Settings.Instance;
-    GameStorage State;
+    GameStorage Storage;
     Artist Artist;
     GameLogic Enigmatologist;
 
@@ -26,74 +26,75 @@ public sealed class Game
     {
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_UP))
         {
-            State.Cursor.Y -= Settings.TileSize;
+            Storage.Player.Position.Y -= 1;
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_DOWN))
         {
-            State.Cursor.Y += Settings.TileSize;
+            Storage.Player.Position.Y += 1;
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT))
         {
-            State.Cursor.X -= Settings.TileSize;
+            Storage.Player.Position.X -= 1;
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT))
         {
-            State.Cursor.X += Settings.TileSize;
+            Storage.Player.Position.X += 1;
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_R))
         {
-            State.Reset();
+            Storage.Reset();
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_MINUS))
         {
-            State.Camera.offset -= new Vector2(0.01f, 0.01f);
-            State.Camera.zoom -= 0.02f;
+            Storage.Camera.offset -= new Vector2(0.01f, 0.01f);
+            Storage.Camera.zoom -= 0.02f;
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_EQUAL))
         {
-            State.Camera.zoom += 0.01f;
+            Storage.Camera.zoom += 0.01f;
         }
 
         if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_RIGHT))
         {
             Vector2 delta = Raylib.GetMouseDelta();
-            delta = delta * (-1.0f / State.Camera.zoom);
+            delta = delta * (-1.0f / Storage.Camera.zoom);
 
-            State.Cursor += delta;
+            Storage.Cursor += delta;
         }
 
         float wheel = Raylib.GetMouseWheelMove();
         if (wheel != 0)
         {
-            Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), State.Camera);
+            Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), Storage.Camera);
 
-            State.Camera.offset = Raylib.GetMousePosition();
+            Storage.Camera.offset = Raylib.GetMousePosition();
 
-            State.Cursor = mouseWorldPos;
+            Storage.Cursor = mouseWorldPos;
 
-            State.Camera.zoom += wheel * 0.125f;
+            Storage.Camera.zoom += wheel * 0.125f;
         }
 
-        if (State.Camera.zoom < 0.375)
+        if (Storage.Camera.zoom < 0.375)
         {
-            State.Camera.zoom = 0.375f;
+            Storage.Camera.zoom = 0.375f;
         }
 
-        State.Camera.target = State.Cursor;
+        Storage.Camera.target = Storage.Cursor;
 
         using (Artist.DrawingEnvironment())
         {
             Raylib.ClearBackground(Raylib.BLACK);
 
-            using (Artist.World2DEnvironment(State.Camera))
+            using (Artist.World2DEnvironment(Storage.Camera))
             {
-                Artist.DrawDungeon(State.Tiles);
+                Artist.DrawDungeon(Storage.Tiles);
+                Artist.DrawActor(Storage.Player);
             }
         }
     }
@@ -102,7 +103,7 @@ public sealed class Game
     {
         Resolution res = Settings.Instance.Resolution;
         res.InitWindow("RoguePound");
-        State = new GameStorage();
+        Storage = new GameStorage();
         Artist = artist;
         Enigmatologist = logic;
     }

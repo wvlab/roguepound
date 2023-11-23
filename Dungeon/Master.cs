@@ -1,4 +1,5 @@
 using FunctionalRoguePound;
+using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
@@ -28,13 +29,14 @@ public sealed class Master
             }
         }
         MainFrame.PostProcTiles();
+        MainFrame.PlaceInteractivePieces();
     }
 
-    public Master(Action resetTiles, Tile[,] tiles) // Take reference to a player position?
+    public Master(Action resetTiles, Tile[,] tiles, Position player) // Take reference to a player position?
     {
         Tiles = tiles;
         Architect = new Architect(Rand, tiles);
-        MainFrame = new MainFrame(Rand, tiles, Architect.Rooms);
+        MainFrame = new MainFrame(Rand, tiles, Architect.Rooms, player);
         ResetTiles = resetTiles;
     }
 }
