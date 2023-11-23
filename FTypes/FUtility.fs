@@ -1,8 +1,8 @@
-﻿namespace FunctionalRoguePound
+﻿namespace FunctionalRoguePound.FUtility
 
 open System
 
-module FUtility =
+module FMath =
     let BresenhamLine (x1: int) (y1: int) (x2: int) (y2: int) =
         let dx = abs (x2 - x1)
         let dy = abs (y2 - y1)

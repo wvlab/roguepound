@@ -1,4 +1,5 @@
 using FunctionalRoguePound;
+using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
@@ -85,7 +86,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles)
         (float x1, float y1) = room1.Center();
         (float x2, float y2) = room1.Center();
 
-        return FUtility.EuclideanDistance(x1, y1, x2, y2);
+        return FMath.EuclideanDistance(x1, y1, x2, y2);
     }
 
     private void GenerateTree()
@@ -172,8 +173,8 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles)
 
         (int cornerX, int cornerY) = Rand.Next(2) == 0 ? (x2, y1) : (x1, y2);
 
-        IEnumerable<(int, int)> DirectWay = FUtility.BresenhamLine(x1, y1, cornerX, cornerY)
-            .Concat(FUtility.BresenhamLine(cornerX, cornerY, x2, y2));
+        IEnumerable<(int, int)> DirectWay = FMath.BresenhamLine(x1, y1, cornerX, cornerY)
+            .Concat(FMath.BresenhamLine(cornerX, cornerY, x2, y2));
 
         (int, int) prCoords = (0, 0);
         int xOffset = 0, yOffset = 0;
@@ -214,19 +215,19 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles)
                     }
 
                     prRoom = room;
-                    foreach ((int mx, int my) in FUtility.BresenhamLine(x + xOffset, y + yOffset, x, y))
+                    foreach ((int mx, int my) in FMath.BresenhamLine(x + xOffset, y + yOffset, x, y))
                     {
                         yield return (mx, my);
                     }
                 }
             }
 
-            prCoords = (x + FUtility.BoundInt(0, 1, offsetTime) * xOffset, y + FUtility.BoundInt(0, 1, offsetTime) * yOffset);
+            prCoords = (x + FMath.BoundInt(0, 1, offsetTime) * xOffset, y + FMath.BoundInt(0, 1, offsetTime) * yOffset);
             yield return prCoords;
 
             if (offsetTime-- == 0)
             {
-                foreach ((int mx, int my) in FUtility.BresenhamLine(x, y, x + xOffset, y + yOffset))
+                foreach ((int mx, int my) in FMath.BresenhamLine(x, y, x + xOffset, y + yOffset))
                 {
                     yield return (mx, my);
                 }
@@ -237,7 +238,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles)
 
         if (offsetTime >= 0)
         {
-            foreach ((int x, int y) in FUtility.BresenhamLine(prCoords.Item1, prCoords.Item2, x2, y2))
+            foreach ((int x, int y) in FMath.BresenhamLine(prCoords.Item1, prCoords.Item2, x2, y2))
             {
                 yield return (x, y);
             }
