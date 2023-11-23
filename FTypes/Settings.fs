@@ -19,3 +19,14 @@ type Resolution =
         | Windowed(x, y) -> aux None x y name
         | Borderless(x, y) -> aux (Some ConfigFlags.FLAG_WINDOW_UNDECORATED) x y name
         | Fullscreen -> aux (Some ConfigFlags.FLAG_FULLSCREEN_MODE) 0 0 name
+
+
+/// Class <c>Settings</c> keeps all constants and variables from settings file(in future)
+type Settings() =
+    static member Instance = Settings()
+
+    member val Resolution = Windowed(900, 600)
+
+    static member TileSize = 32
+    static member TileHeight = 48
+    static member TileWidth = 80

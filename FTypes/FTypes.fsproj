@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="FUtility.fs" />
-    <Compile Include="Resolution.fs" />
+    <Compile Include="Settings.fs" />
     <Compile Include="Room.fs" />
   </ItemGroup>
 
