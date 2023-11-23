@@ -1,5 +1,6 @@
 using System.Numerics;
 using Raylib_CsLo;
+using FunctionalRoguePound;
 
 namespace RoguePound;
 
@@ -9,9 +10,9 @@ public interface IState
 }
 
 
-public struct GameState : IState
+public struct GameStorage : IState
 {
-    public ITile[,] Tiles = new ITile[Settings.TileWidth, Settings.TileHeight];
+    public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();
     public Vector2 Cursor;
     Dungeon.Master Dungeon;
@@ -35,7 +36,7 @@ public struct GameState : IState
         {
             for (int y = 0; y < Settings.TileHeight; y += 1)
             {
-                Tiles[x, y] = new VoidTile();
+                Tiles[x, y].Type = TileType.Void;
             }
         }
     }
@@ -49,7 +50,7 @@ public struct GameState : IState
         Dungeon.Generate();
     }
 
-    public GameState()
+    public GameStorage()
     {
         Dungeon = new Dungeon.Master(ResetTiles, Tiles);
         Reset();
