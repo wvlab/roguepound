@@ -2,13 +2,12 @@ using FunctionalRoguePound;
 
 namespace RoguePound.Dungeon;
 
-internal sealed record class Architect(Random Rand, ITile[,] Tiles)
+internal sealed record class Architect(Random Rand, Tile[,] Tiles)
 {
     const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
     const int RoomCountThreshold = 13;
     internal List<Edge> Corridors = new List<Edge>();
     public List<Room> Rooms = new List<Room>();
-    DumbTileSet DumbTileSet = new DumbTileSet();
 
     enum SplitDirection { Horizontal, Vertical }
 
@@ -16,29 +15,21 @@ internal sealed record class Architect(Random Rand, ITile[,] Tiles)
     {
         foreach (Room room in Rooms)
         {
-            Tiles[room.x1 + Room.WallOffset, room.y1 + Room.WallOffset] = DumbTileSet.LTCorner;
-            Tiles[room.x2 - Room.WallOffset, room.y1 + Room.WallOffset] = DumbTileSet.RTCorner;
-            Tiles[room.x1 + Room.WallOffset, room.y2 - Room.WallOffset] = DumbTileSet.LBCorner;
-            Tiles[room.x2 - Room.WallOffset, room.y2 - Room.WallOffset] = DumbTileSet.RTCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y1 + Room.WallOffset].Type = TileType.LTCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y1 + Room.WallOffset].Type = TileType.RTCorner;
+            Tiles[room.x1 + Room.WallOffset, room.y2 - Room.WallOffset].Type = TileType.LBCorner;
+            Tiles[room.x2 - Room.WallOffset, room.y2 - Room.WallOffset].Type = TileType.RTCorner;
 
             foreach (int i in room.HWallXCoords())
             {
-                Tiles[i, room.y2 - Room.WallOffset] = DumbTileSet.HWall;
-                Tiles[i, room.y1 + Room.WallOffset] = DumbTileSet.HWall;
+                Tiles[i, room.y2 - Room.WallOffset].Type = TileType.HBWall;
+                Tiles[i, room.y1 + Room.WallOffset].Type = TileType.HTWall;
             }
 
             foreach (int i in room.VWallYCoords())
             {
-                Tiles[room.x1 + Room.WallOffset, i] = DumbTileSet.VWall;
-                Tiles[room.x2 - Room.WallOffset, i] = DumbTileSet.VWall;
-            }
-
-            foreach (int i in room.HWallXCoords())
-            {
-                foreach (int j in room.VWallYCoords())
-                {
-                    Tiles[i, j] = DumbTileSet.Floor;
-                }
+                Tiles[room.x1 + Room.WallOffset, i].Type = TileType.VLWall;
+                Tiles[room.x2 - Room.WallOffset, i].Type = TileType.VRWall;
             }
         }
 
@@ -265,7 +256,7 @@ internal sealed record class Architect(Random Rand, ITile[,] Tiles)
                     && (y == room.y1 + Room.WallOffset || y == room.y2 - Room.WallOffset))
                         throw new Exception("DUNGEON IS BROKEN");
                 }
-                Tiles[x, y] = DumbTileSet.Path;
+                Tiles[x, y].Type = TileType.Path;
             }
         }
     }

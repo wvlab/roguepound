@@ -1,11 +1,12 @@
 using System.Numerics;
 using Raylib_CsLo;
+using FunctionalRoguePound;
 
 namespace RoguePound;
 
 public interface IArtist
 {
-    void DrawDungeon(in ITile[,] DungeonTiles);
+    void DrawDungeon(in Tile[,] DungeonTiles);
     IDisposable DrawingEnvironment();
     IDisposable World2DEnvironment(Camera2D Camera);
 }
@@ -18,6 +19,7 @@ public class ArtistPermissionException : Exception
 
 public class Artist : IArtist
 {
+    private ITileSet TileSet = new ClassicTileSet();
     private class Permission
     {
         public bool isAllowed { get; set; } = false;
@@ -73,7 +75,7 @@ public class Artist : IArtist
     public IDisposable DrawingEnvironment() => new PermissionEnvironment(permissionToDraw, Raylib.BeginDrawing, Raylib.EndDrawing);
     public IDisposable World2DEnvironment(Camera2D cam) => new PermissionEnvironment(permissionToDraw2D, () => Raylib.BeginMode2D(cam), Raylib.EndMode2D);
 
-    public void DrawDungeon(in ITile[,] dungeonTiles)
+    public void DrawDungeon(in Tile[,] dungeonTiles)
     {
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
@@ -86,7 +88,8 @@ public class Artist : IArtist
                     x * Settings.TileSize,
                     y * Settings.TileSize
                 );
-                dungeonTiles[x, y].Draw(vec);
+
+                TileSet.DrawTile(dungeonTiles[x, y], vec);
             }
         }
     }

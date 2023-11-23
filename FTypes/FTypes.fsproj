@@ -9,6 +9,7 @@
     <Compile Include="FUtility.fs" />
     <Compile Include="Settings.fs" />
     <Compile Include="Room.fs" />
+    <Compile Include="Tiles.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,8 +18,6 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        Settings settings = Settings.Instance;
-
         Artist drawer = new Artist();
         GameLogic logic = new GameLogic();
         Game game = new Game(drawer, logic);

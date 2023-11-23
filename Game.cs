@@ -18,7 +18,7 @@ public sealed class GameLogic : IGameLogic
 public sealed class Game
 {
     Settings Settings = Settings.Instance;
-    GameState State;
+    GameStorage State;
     Artist Artist;
     GameLogic Enigmatologist;
 
@@ -80,9 +80,9 @@ public sealed class Game
             State.Camera.zoom += wheel * 0.125f;
         }
 
-        if (State.Camera.zoom < 0.250)
+        if (State.Camera.zoom < 0.375)
         {
-            State.Camera.zoom = 0.250f;
+            State.Camera.zoom = 0.375f;
         }
 
         State.Camera.target = State.Cursor;
@@ -102,7 +102,7 @@ public sealed class Game
     {
         Resolution res = Settings.Instance.Resolution;
         res.InitWindow("RoguePound");
-        State = new GameState();
+        State = new GameStorage();
         Artist = artist;
         Enigmatologist = logic;
     }

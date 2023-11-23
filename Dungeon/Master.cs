@@ -7,8 +7,7 @@ internal readonly record struct Edge(Room Room1, Room Room2);
 public sealed class Master
 {
     Random Rand = new Random();
-    public ITileSet TileSet = new TestingTileSet();
-    ITile[,] Tiles;
+    Tile[,] Tiles;
     Architect Architect;
     MainFrame MainFrame;
     Action ResetTiles;
@@ -28,10 +27,10 @@ public sealed class Master
                 ResetTiles();
             }
         }
-        MainFrame.PostProcTiles(TileSet);
+        MainFrame.PostProcTiles();
     }
 
-    public Master(Action resetTiles, ITile[,] tiles) // Take reference to a player position?
+    public Master(Action resetTiles, Tile[,] tiles) // Take reference to a player position?
     {
         Tiles = tiles;
         Architect = new Architect(Rand, tiles);
