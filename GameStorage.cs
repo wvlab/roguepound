@@ -4,13 +4,13 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-public interface IState
+public interface IStorage
 {
     void Reset();
 }
 
 
-public struct GameStorage : IState
+public struct GameStorage : IStorage
 {
     public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();

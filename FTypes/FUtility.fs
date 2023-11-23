@@ -41,7 +41,7 @@ module FMath =
 
         sqrt (x' * x' + y' * y')
 
-    let BoundInt (lower: int) (upper: int) (x: int) = min upper (max lower x)
+    let Bound (lower: 'T) (upper: 'T) (x: 'T) = min upper (max lower x)
 
 
 module FDraw =

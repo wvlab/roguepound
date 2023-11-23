@@ -222,7 +222,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles)
                 }
             }
 
-            prCoords = (x + FMath.BoundInt(0, 1, offsetTime) * xOffset, y + FMath.BoundInt(0, 1, offsetTime) * yOffset);
+            prCoords = (x + FMath.Bound(0, 1, offsetTime) * xOffset, y + FMath.Bound(0, 1, offsetTime) * yOffset);
             yield return prCoords;
 
             if (offsetTime-- == 0)

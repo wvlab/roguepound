@@ -19,8 +19,7 @@ public static class Program
     public static void Main(string[] args)
     {
         Artist drawer = new Artist();
-        GameLogic logic = new GameLogic();
-        Game game = new Game(drawer, logic);
+        Game game = new Game(drawer);
         while (!Raylib.WindowShouldClose())
         {
             game.Update();
