@@ -44,6 +44,7 @@ public class GameStorage : IStorage
     public void Reset()
     {
         Camera.zoom = 1.0f;
+        Camera.rotation = 0.0f;
         CenterCamera();
         ResetTiles();
         Dungeon.Generate();

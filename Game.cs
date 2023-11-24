@@ -11,12 +11,93 @@ interface IState
     void Reset();
 }
 
+static class CameraHandler
+{
+    const float ZoomMultiplier = 0.125f;
+    static int FarLeftCursorBoundary = -Settings.TileWidth * Settings.TileSize;
+    static int FarRightCursorBoundary = Settings.TileWidth * Settings.TileSize;
+    static int FarTopCursorBoundary = -Settings.TileHeight * Settings.TileSize;
+    static int FarBottomCursorBoundary = Settings.TileHeight * Settings.TileSize;
 
-record class MovementState(GameStorage Storage) : IState
+    static Vector2 cursor = new(0, 0);
+
+    static void HandleZoomMouse(ref Camera2D cam)
+    {
+        float wheel = Raylib.GetMouseWheelMove();
+        if (wheel != 0)
+        {
+            cam.target = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), cam);
+            cam.offset = Raylib.GetMousePosition();
+            cam.zoom += wheel * ZoomMultiplier;
+        }
+    }
+
+    static void HandleZoom(ref Camera2D cam)
+    {
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_MINUS))
+        {
+            cam.zoom -= ZoomMultiplier;
+        }
+
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_EQUAL))
+        {
+            cam.zoom += ZoomMultiplier;
+        }
+
+        HandleZoomMouse(ref cam);
+
+        cam.zoom = FMath.Bound(0.375f, 3, cam.zoom);
+    }
+
+    static void HandleCameraDrag(ref Camera2D cam)
+    {
+        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_RIGHT))
+        {
+            Vector2 delta = Raylib.GetMouseDelta();
+            delta = delta * (-1.0f / cam.zoom);
+
+            cam.target += delta;
+        }
+
+        cam.target.X = FMath.Bound(FarLeftCursorBoundary, FarRightCursorBoundary, cam.target.X);
+        cam.target.Y = FMath.Bound(FarTopCursorBoundary, FarBottomCursorBoundary, cam.target.Y);
+    }
+
+    public static void HandleInput(GameStorage Storage)
+    {
+        Camera2D cam = Storage.Camera;
+
+        HandleZoom(ref cam);
+        HandleCameraDrag(ref cam);
+
+        Storage.Camera = cam;
+    }
+}
+
+record class GenericDungeonInputState : IState
+{
+    GameStorage Storage;
+
+    public void HandleInput()
+    {
+        CameraHandler.HandleInput(Storage);
+    }
+
+    public void Reset()
+    {
+    }
+
+    public GenericDungeonInputState(GameStorage storage)
+    {
+        Storage = storage;
+    }
+}
+
+record class MovementState(GameStorage Storage) : GenericDungeonInputState(Storage)
 {
     bool isRunning = false;
 
-    public void HandleInput()
+    new public void HandleInput()
     {
         // TODO: Check for boundaries
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_UP))
@@ -24,100 +105,44 @@ record class MovementState(GameStorage Storage) : IState
             Storage.Player.Position.Y -= 1;
         }
 
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_DOWN))
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_DOWN))
         {
             Storage.Player.Position.Y += 1;
         }
 
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT))
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT))
         {
             Storage.Player.Position.X -= 1;
         }
 
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT))
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT))
         {
             Storage.Player.Position.X += 1;
         }
+
+        else base.HandleInput();
     }
 
-    public void Reset()
+    new public void Reset()
     {
         isRunning = false;
+        base.Reset();
     }
-}
-
-record class CameraState(GameStorage Storage) : IState
-{
-    static int FarLeftCursorBoundary = -Settings.TileWidth * Settings.TileSize;
-    static int FarRightCursorBoundary = Settings.TileWidth * Settings.TileSize;
-    static int FarTopCursorBoundary = -Settings.TileHeight * Settings.TileSize;
-    static int FarBottomCursorBoundary = Settings.TileHeight * Settings.TileSize;
-
-    Vector2 cursor = new(0, 0);
-
-    public void HandleInput()
-    {
-        Camera2D cam = Storage.Camera;
-        cam.rotation = 0f;
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_MINUS))
-        {
-            cam.offset -= new Vector2(0.01f, 0.01f);
-            cam.zoom -= 0.02f;
-        }
-
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_EQUAL))
-        {
-            cam.zoom += 0.01f;
-        }
-
-        if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_RIGHT))
-        {
-            Vector2 delta = Raylib.GetMouseDelta();
-            delta = delta * (-1.0f / cam.zoom);
-
-            cursor += delta;
-        }
-        cursor.X = FMath.Bound(FarLeftCursorBoundary, FarRightCursorBoundary, cursor.X);
-        cursor.Y = FMath.Bound(FarTopCursorBoundary, FarBottomCursorBoundary, cursor.Y);
-
-        float wheel = Raylib.GetMouseWheelMove();
-        if (wheel != 0)
-        {
-            Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), cam);
-
-            cam.offset = Raylib.GetMousePosition();
-
-            cursor = mouseWorldPos;
-
-            cam.zoom += wheel * 0.125f;
-        }
-
-        cam.zoom = FMath.Bound(0.375f, 3, cam.zoom);
-
-        cam.target = cursor;
-        Storage.Camera = cam;
-    }
-
-    public void Reset() { }
 }
 
 record class InDungeonState(GameStorage Storage) : IState
 {
     MovementState Movement = new(Storage);
-    CameraState Camera = new(Storage);
 
     public void HandleInput()
     {
         Movement.HandleInput();
-        Camera.HandleInput();
     }
 
     public void Reset()
     {
         Movement.Reset();
-        Camera.Reset();
     }
-
 }
 
 class GameState : IState
