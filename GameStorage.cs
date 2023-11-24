@@ -10,12 +10,11 @@ public interface IStorage
 }
 
 
-public struct GameStorage : IStorage
+public class GameStorage : IStorage
 {
     public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();
     public Player Player = new Player();
-    public Vector2 Cursor;
     Dungeon.Master Dungeon;
 
     private void CenterCamera()
@@ -44,7 +43,6 @@ public struct GameStorage : IStorage
 
     public void Reset()
     {
-        Cursor = new Vector2(0.0f, 0.0f);
         Camera.zoom = 1.0f;
         CenterCamera();
         ResetTiles();
