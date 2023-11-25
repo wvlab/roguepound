@@ -53,7 +53,7 @@ internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Ro
     public void PlaceInteractivePieces()
     {
         Room spawn = Rooms[Rand.Next(Rooms.Count)];
-        player.X = Rand.Next(spawn.x1 + Room.WallOffset, spawn.x2 - Room.WallOffset);
-        player.Y = Rand.Next(spawn.y1 + Room.WallOffset, spawn.y2 - Room.WallOffset);
+        player.X = Rand.Next(spawn.x1 + Room.WallOffset + 1, spawn.x2 - Room.WallOffset);
+        player.Y = Rand.Next(spawn.y1 + Room.WallOffset + 1, spawn.y2 - Room.WallOffset);
     }
 }
