@@ -125,7 +125,7 @@ public class Artist : IArtist
         CheckPermissionToDraw2D();
 
         FDraw.TextCentered(
-            actor.letter,
+            actor.Letter,
             actor.Position.ToVector2 * new Vector2(Settings.TileSize, Settings.TileSize),
             Settings.TileSize,
             Raylib.WHITE
