@@ -26,6 +26,24 @@ type public Tile =
     { mutable Type: TileType
       mutable IsOpen: bool }
 
+    static member isTraversable tile =
+        match tile.Type with
+        | LTCorner
+        | RTCorner
+        | LBCorner
+        | RBCorner
+        | HTWall
+        | HBWall
+        | VLWall
+        | VRWall
+        | Void -> false
+        | Floor
+        | Path
+        | TDoor
+        | BDoor
+        | LDoor
+        | RDoor -> true
+
 type ITileSet =
     abstract DrawTile: Tile -> Vector2 -> unit
 

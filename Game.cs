@@ -95,37 +95,43 @@ record class GenericDungeonInputState : IState
 
 record class MovementState(GameStorage Storage) : GenericDungeonInputState(Storage)
 {
-    bool isRunning = false;
-
+    short Cooldown = 0;
     new public void HandleInput()
     {
-        // TODO: Check for boundaries
-        if (Raylib.IsKeyPressed(KeyboardKey.KEY_UP))
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_K) && Cooldown == 0
+        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X, Storage.Player.Position.Y - 1]))
         {
             Storage.Player.Position.Y -= 1;
+            Cooldown = 60;
         }
 
-        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_DOWN))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_J) && Cooldown == 0
+        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X, Storage.Player.Position.Y + 1]))
         {
             Storage.Player.Position.Y += 1;
+            Cooldown = 60;
         }
 
-        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_LEFT))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_H) && Cooldown == 0
+        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X - 1, Storage.Player.Position.Y]))
         {
             Storage.Player.Position.X -= 1;
+            Cooldown = 60;
         }
 
-        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_RIGHT))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_L) && Cooldown == 0
+        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X + 1, Storage.Player.Position.Y]))
         {
             Storage.Player.Position.X += 1;
+            Cooldown = 60;
         }
-
         else base.HandleInput();
+
+        if (Cooldown > 0) Cooldown--;
     }
 
     new public void Reset()
     {
-        isRunning = false;
         base.Reset();
     }
 }
@@ -190,8 +196,8 @@ public sealed class Game
             using (Artist.World2DEnvironment(Storage.Camera))
             {
                 Artist.DrawDungeon(Storage.Tiles);
-                Artist.DrawActor(Storage.Player);
                 Artist.DrawInteractiveObjects(Storage.InteractiveObjects);
+                Artist.DrawActor(Storage.Player);
             }
         }
     }
