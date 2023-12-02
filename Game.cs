@@ -138,16 +138,16 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
 
 record class InDungeonState(GameStorage Storage) : IState
 {
-    MovementState Movement = new(Storage);
+    InteractState Interact = new(Storage);
 
     public void HandleInput()
     {
-        Movement.HandleInput();
+        Interact.HandleInput();
     }
 
     public void Reset()
     {
-        Movement.Reset();
+        Interact.Reset();
     }
 }
 
@@ -182,9 +182,8 @@ public sealed class Game
 {
     GameState State;
     Settings Settings = Settings.Instance;
-    GameStorage Storage = new();
     Artist Artist;
-
+    GameStorage Storage;
     public void Update()
     {
         State.HandleInput();
@@ -206,6 +205,7 @@ public sealed class Game
     {
         Resolution res = Settings.Instance.Resolution;
         res.InitWindow("RoguePound");
+        Storage = new();
         State = new(Storage);
         Artist = artist;
     }
