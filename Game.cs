@@ -327,6 +327,7 @@ public sealed class Game
                 Artist.DrawInteractiveObjects(Storage.InteractiveObjects, Storage.Tiles);
                 Artist.DrawActor(Storage.Player);
             }
+            Artist.DrawStatusBar(Storage);
         }
     }
 

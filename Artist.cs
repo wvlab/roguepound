@@ -20,6 +20,8 @@ public class ArtistPermissionException : Exception
 
 public class Artist : IArtist
 {
+    const int StatusBarHeight = 36;
+
     private ITileSet TileSet = new ClassicTileSet();
     private class Permission
     {
@@ -139,6 +141,30 @@ public class Artist : IArtist
             actor.Letter,
             (actor.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
             Settings.TileSize,
+            Raylib.WHITE
+        ).Invoke(null);
+    }
+
+    public void DrawStatusBar(GameStorage storage)
+    {
+        CheckPermissionToDraw();
+
+        Player player = storage.Player;
+        int screenWidth = Raylib.GetScreenWidth();
+        int screenHeight = Raylib.GetScreenHeight();
+
+        Raylib.DrawRectangle(
+            0,
+            screenHeight - StatusBarHeight,
+            screenWidth,
+            StatusBarHeight,
+            Raylib.BLACK
+        );
+
+        FDraw.TextCentered(
+            $"[LVL:{player.Level}] [Coins:{storage.Coins}] [HP:{player.Stats.Health}] [ATK:{player.Stats.Attack}] [ARM:{player.Stats.Armor}] [EXP:{player.Experience}/{player.ExperienceCap}]",
+            new Vector2(screenWidth / 2, screenHeight - StatusBarHeight),
+            StatusBarHeight - 8,
             Raylib.WHITE
         ).Invoke(null);
     }
