@@ -85,12 +85,16 @@ public class Artist : IArtist
         {
             for (int y = 0; y < Settings.TileHeight; y += 1)
             {
-                Vector2 vec = new Vector2(
-                    x * Settings.TileSize,
-                    y * Settings.TileSize
-                );
-    
-                TileSet.DrawTile(dungeonTiles[x, y], vec + new Vector2(Settings.TileSize / 2, 0));
+                Tile tile = dungeonTiles[x, y];
+                if (tile.IsOpen)
+                {
+                    Vector2 vec = new Vector2(
+                        x * Settings.TileSize,
+                        y * Settings.TileSize
+                    );
+
+                    TileSet.DrawTile(dungeonTiles[x, y], vec + new Vector2(Settings.TileSize / 2, 0));
+                }
             }
         }
     }
@@ -139,17 +143,21 @@ public class Artist : IArtist
         ).Invoke(null);
     }
 
-    public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects)
+    public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects, in Tile[,] tiles)
     {
         foreach (var obj in interactiveObjects)
         {
-            ClearCell(obj.Position);
-            FDraw.TextCentered(
-                obj.Letter,
-                (obj.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
-                Settings.TileSize,
-                Raylib.WHITE
-            ).Invoke(null);
+            (int posX, int posY) = (obj.Position.X, obj.Position.Y);
+            if (tiles[posX, posY].IsOpen)
+            {
+                ClearCell(obj.Position);
+                FDraw.TextCentered(
+                    obj.Letter,
+                    (obj.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
+                    Settings.TileSize,
+                    Raylib.WHITE
+                ).Invoke(null);
+            }
         }
     }
 }

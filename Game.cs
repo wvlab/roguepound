@@ -166,7 +166,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
     Player Player = Storage.Player;
     new public void HandleInput()
     {
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_K)
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_K)
         && Cooldown == 0
         && Player.Position.Y != 0
         && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y - 1])
@@ -176,7 +176,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
             Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_J)
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_J)
         && Cooldown == 0
         && Player.Position.Y != Settings.TileHeight - 1
         && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y + 1])
@@ -186,7 +186,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
             Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_H)
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_H)
         && Cooldown == 0
         && Player.Position.X != 0
         && Tile.isTraversable(Storage.Tiles[Player.Position.X - 1, Player.Position.Y])
@@ -196,7 +196,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
             Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_L)
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_L)
         && Cooldown == 0
         && Player.Position.X != Settings.TileWidth - 1
         && Tile.isTraversable(Storage.Tiles[Player.Position.X + 1, Player.Position.Y])
@@ -260,6 +260,51 @@ class GameState : IState
 }
 
 
+static class Enigmatologist
+{
+    public static void UpdateFogOfWar(Player player, IEnumerable<Room> rooms, Tile[,] tiles)
+    {
+        (int posX, int posY) = (player.Position.X, player.Position.Y);
+        foreach (Room room in rooms)
+        {
+            if (!room.IsInRoom(posX, posY))
+            {
+                continue;
+            }
+
+            if (!tiles[room.x1 + Room.WallOffset + 1, room.y1 + Room.WallOffset + 1].IsOpen)
+            {
+                foreach (int i in room.HWallXCoords().Append(room.x1 + Room.WallOffset).Append(room.x2 - Room.WallOffset))
+                {
+                    foreach (int j in room.VWallYCoords().Append(room.y1 + Room.WallOffset).Append(room.y2 - Room.WallOffset))
+                    {
+                        tiles[i, j].IsOpen = true;
+                    }
+                }
+
+                return;
+            }
+        }
+        if (player.Position.X != Settings.TileWidth - 1)
+        {
+            tiles[player.Position.X + 1, player.Position.Y].IsOpen = true;
+        }
+        if (player.Position.X != 0)
+        {
+            tiles[player.Position.X - 1, player.Position.Y].IsOpen = true;
+        }
+        if (player.Position.Y != Settings.TileHeight - 1)
+        {
+            tiles[player.Position.X, player.Position.Y + 1].IsOpen = true;
+        }
+        if (player.Position.Y != 0)
+        {
+            tiles[player.Position.X, player.Position.Y - 1].IsOpen = true;
+        }
+    }
+}
+
+
 public sealed class Game
 {
     GameState State;
@@ -270,6 +315,8 @@ public sealed class Game
     {
         State.HandleInput();
 
+        Enigmatologist.UpdateFogOfWar(Storage.Player, Storage.Rooms, Storage.Tiles);
+
         using (Artist.DrawingEnvironment())
         {
             Raylib.ClearBackground(Raylib.BLACK);
@@ -277,7 +324,7 @@ public sealed class Game
             using (Artist.World2DEnvironment(Storage.Camera))
             {
                 Artist.DrawDungeon(Storage.Tiles);
-                Artist.DrawInteractiveObjects(Storage.InteractiveObjects);
+                Artist.DrawInteractiveObjects(Storage.InteractiveObjects, Storage.Tiles);
                 Artist.DrawActor(Storage.Player);
             }
         }

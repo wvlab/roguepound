@@ -3,12 +3,11 @@ using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
-internal sealed record class Architect(Random Rand, Tile[,] Tiles)
+internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Rooms)
 {
     const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
     const int RoomCountThreshold = 13;
     internal List<Edge> Corridors = new List<Edge>();
-    public List<Room> Rooms = new List<Room>();
 
     enum SplitDirection { Horizontal, Vertical }
 

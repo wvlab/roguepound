@@ -5,13 +5,18 @@ namespace RoguePound.Dungeon;
 
 internal readonly record struct Edge(Room Room1, Room Room2);
 
-public sealed class Master
+public sealed record class Master(
+    Action ResetTiles,
+    Random rand,
+    Tile[,] tiles,
+    List<Room> rooms,
+    List<InteractiveObject> interactiveObjects,
+    Position player
+)
 {
-    Random Rand = new Random();
-    Tile[,] Tiles;
-    Architect Architect;
-    MainFrame MainFrame;
-    Action ResetTiles;
+    Tile[,] Tiles = tiles;
+    Architect Architect = new Architect(rand, tiles, rooms);
+    MainFrame MainFrame = new MainFrame(rand, tiles, rooms, interactiveObjects, player);
 
     public void Generate()
     {
@@ -30,13 +35,5 @@ public sealed class Master
         }
         MainFrame.PostProcTiles();
         MainFrame.PlaceInteractivePieces();
-    }
-
-    public Master(Action resetTiles, Tile[,] tiles, List<InteractiveObject> interactiveObjects, Position player) // Take reference to a player position?
-    {
-        Tiles = tiles;
-        Architect = new Architect(Rand, tiles);
-        MainFrame = new MainFrame(Rand, tiles, Architect.Rooms, interactiveObjects, player);
-        ResetTiles = resetTiles;
     }
 }

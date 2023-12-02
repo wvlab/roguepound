@@ -13,9 +13,11 @@ public interface IStorage
 public class GameStorage : IStorage
 {
     public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
-    public Camera2D Camera = new Camera2D();
-    public Player Player = new Player();
+    public Camera2D Camera = new();
+    public Player Player = new();
     public List<InteractiveObject> InteractiveObjects = new();
+    public List<Room> Rooms = new();
+    Random Rand = new();
     public long Coins = 0;
     public Dungeon.Master Dungeon;
 
@@ -42,6 +44,7 @@ public class GameStorage : IStorage
             for (int y = 0; y < Settings.TileHeight; y += 1)
             {
                 Tiles[x, y].Type = TileType.Void;
+                Tiles[x, y].IsOpen = false;
             }
         }
     }
@@ -63,7 +66,14 @@ public class GameStorage : IStorage
 
     public GameStorage()
     {
-        Dungeon = new Dungeon.Master(ResetTiles, Tiles, InteractiveObjects, Player.Position);
+        Dungeon = new Dungeon.Master(
+            ResetTiles,
+            Rand,
+            Tiles,
+            Rooms,
+            InteractiveObjects,
+            Player.Position
+        );
         Reset();
     }
 }
