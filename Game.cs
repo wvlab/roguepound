@@ -20,6 +20,7 @@ static class CameraHandler
     static int FarBottomCursorBoundary = Settings.TileHeight * Settings.TileSize;
 
     static Vector2 cursor = new(0, 0);
+    static bool followPlayer = true;
 
     static void HandleZoomMouse(ref Camera2D cam)
     {
@@ -27,7 +28,12 @@ static class CameraHandler
         if (wheel != 0)
         {
             cam.target = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), cam);
-            cam.offset = Raylib.GetMousePosition();
+
+            if (!followPlayer)
+            {
+                cam.offset = Raylib.GetMousePosition();
+            }
+
             cam.zoom += wheel * ZoomMultiplier;
         }
     }
@@ -43,7 +49,6 @@ static class CameraHandler
         {
             cam.zoom += ZoomMultiplier;
         }
-
         HandleZoomMouse(ref cam);
 
         cam.zoom = FMath.Bound(0.375f, 3, cam.zoom);
@@ -70,7 +75,21 @@ static class CameraHandler
         HandleZoom(ref cam);
         HandleCameraDrag(ref cam);
 
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_F))
+        {
+            followPlayer = !followPlayer;
+            Storage.CenterCamera();
+        }
+
         Storage.Camera = cam;
+    }
+
+    public static void UpdateCameraPos(GameStorage Storage)
+    {
+        if (followPlayer == true)
+        {
+            Storage.Camera.target = Storage.Player.Position.ToVector2 * Settings.TileSize;
+        }
     }
 }
 
@@ -93,37 +112,98 @@ record class GenericDungeonInputState : IState
     }
 }
 
+record class InteractState(GameStorage Storage) : MovementState(Storage)
+{
+    new public void HandleInput()
+    {
+        bool interacted = false;
+
+        foreach (var obj in Storage.InteractiveObjects.ToArray())
+        {
+            if (obj.Position == Storage.Player.Position)
+            {
+                interacted = InteractWithCoins(obj)
+                          || InteractWithStairs(obj);
+            }
+        }
+
+        if (!interacted)
+        {
+            base.HandleInput();
+        }
+    }
+
+    private bool InteractWithStairs(InteractiveObject obj)
+    {
+        if (obj.Type.IsStairs)
+        {
+            if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT) && Raylib.IsKeyPressed(KeyboardKey.KEY_PERIOD))
+            {
+                Storage.RegenerateDungeon();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool InteractWithCoins(InteractiveObject obj)
+    {
+        if (obj.Type.IsCoins)
+        {
+            Storage.InteractiveObjects.Remove(obj);
+            Storage.Coins += (obj.Type as InteractiveObjectType.Coins)!.amount;
+            return true;
+        }
+
+        return false;
+    }
+}
+
 record class MovementState(GameStorage Storage) : GenericDungeonInputState(Storage)
 {
     short Cooldown = 0;
+    Player Player = Storage.Player;
     new public void HandleInput()
     {
-        if (Raylib.IsKeyDown(KeyboardKey.KEY_K) && Cooldown == 0
-        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X, Storage.Player.Position.Y - 1]))
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_K)
+        && Cooldown == 0
+        && Player.Position.Y != 0
+        && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y - 1])
+        )
         {
-            Storage.Player.Position.Y -= 1;
-            Cooldown = 60;
+            Player.Position.Y -= 1;
+            Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_J) && Cooldown == 0
-        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X, Storage.Player.Position.Y + 1]))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_J)
+        && Cooldown == 0
+        && Player.Position.Y != Settings.TileHeight - 1
+        && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y + 1])
+        )
         {
-            Storage.Player.Position.Y += 1;
-            Cooldown = 60;
+            Player.Position.Y += 1;
+            Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_H) && Cooldown == 0
-        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X - 1, Storage.Player.Position.Y]))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_H)
+        && Cooldown == 0
+        && Player.Position.X != 0
+        && Tile.isTraversable(Storage.Tiles[Player.Position.X - 1, Player.Position.Y])
+        )
         {
-            Storage.Player.Position.X -= 1;
-            Cooldown = 60;
+            Player.Position.X -= 1;
+            Cooldown = 65;
         }
 
-        else if (Raylib.IsKeyDown(KeyboardKey.KEY_L) && Cooldown == 0
-        && Tile.isTraversable(Storage.Tiles[Storage.Player.Position.X + 1, Storage.Player.Position.Y]))
+        else if (Raylib.IsKeyDown(KeyboardKey.KEY_L)
+        && Cooldown == 0
+        && Player.Position.X != Settings.TileWidth - 1
+        && Tile.isTraversable(Storage.Tiles[Player.Position.X + 1, Player.Position.Y])
+        )
         {
-            Storage.Player.Position.X += 1;
-            Cooldown = 60;
+            Player.Position.X += 1;
+            Cooldown = 65;
         }
         else base.HandleInput();
 
@@ -132,6 +212,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
 
     new public void Reset()
     {
+        Player = Storage.Player;
         base.Reset();
     }
 }
@@ -143,6 +224,7 @@ record class InDungeonState(GameStorage Storage) : IState
     public void HandleInput()
     {
         Interact.HandleInput();
+        CameraHandler.UpdateCameraPos(Storage);
     }
 
     public void Reset()

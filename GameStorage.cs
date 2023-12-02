@@ -16,20 +16,23 @@ public class GameStorage : IStorage
     public Camera2D Camera = new Camera2D();
     public Player Player = new Player();
     public List<InteractiveObject> InteractiveObjects = new();
-    Dungeon.Master Dungeon;
-    long Coins = 0;
+    public long Coins = 0;
+    public Dungeon.Master Dungeon;
 
-    private void CenterCamera()
+    public void CenterCamera()
     {
-        Vector2 MapCenter = new Vector2(
-            (float)(Settings.TileWidth * Settings.TileSize) / 2,
-            (float)(Settings.TileHeight * Settings.TileSize) / 2
-        );
         Vector2 ScreenCenter = new Vector2(
-            (float)Raylib.GetScreenWidth() / 2,
-            (float)Raylib.GetScreenHeight() / 2
-        );
-        Camera.offset = ScreenCenter - MapCenter;
+            (float)Raylib.GetScreenWidth(),
+            (float)Raylib.GetScreenHeight()
+        ) / 2.0f;
+
+        Vector2 MapCenter = new Vector2(
+            (float)Settings.TileWidth,
+            (float)Settings.TileHeight
+        ) * Settings.TileSize / 2.0f;
+
+        Camera.offset = ScreenCenter;
+        Camera.target = Player.Position.ToVector2 * Settings.TileSize;
     }
 
     private void ResetTiles()
@@ -47,10 +50,15 @@ public class GameStorage : IStorage
     {
         Camera.zoom = 1.0f;
         Camera.rotation = 0.0f;
-        CenterCamera();
+        InteractiveObjects.Clear();
         ResetTiles();
         Dungeon.Generate();
-        foreach (var obj in InteractiveObjects) Console.WriteLine(obj);
+        CenterCamera();
+    }
+
+    public void RegenerateDungeon()
+    {
+        Reset();
     }
 
     public GameStorage()
