@@ -32,11 +32,11 @@ public sealed class Master
         MainFrame.PlaceInteractivePieces();
     }
 
-    public Master(Action resetTiles, Tile[,] tiles, Position player) // Take reference to a player position?
+    public Master(Action resetTiles, Tile[,] tiles, List<InteractiveObject> interactiveObjects, Position player) // Take reference to a player position?
     {
         Tiles = tiles;
         Architect = new Architect(Rand, tiles);
-        MainFrame = new MainFrame(Rand, tiles, Architect.Rooms, player);
+        MainFrame = new MainFrame(Rand, tiles, Architect.Rooms, interactiveObjects, player);
         ResetTiles = resetTiles;
     }
 }

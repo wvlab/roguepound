@@ -3,7 +3,13 @@ using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
-internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Rooms, Position player)
+internal sealed record class MainFrame(
+    Random Rand,
+    Tile[,] Tiles,
+    List<Room> Rooms,
+    List<InteractiveObject> InteractiveObjects,
+    Position player
+)
 {
     public void PostProcTiles()
     {
@@ -52,8 +58,32 @@ internal sealed record class MainFrame(Random Rand, Tile[,] Tiles, List<Room> Ro
 
     public void PlaceInteractivePieces()
     {
+        PlacePlayerAndStairs();
+        foreach (Room room in Rooms)
+        {
+            (int posX, int posY) = room.RandPos(Rand);
+            InteractiveObjects.Add(new InteractiveObject(
+                InteractiveObjectType.NewCoins(Rand.Next(10, 150)),
+                new(posX, posY)
+            ));
+        }
+    }
+
+    private void PlacePlayerAndStairs()
+    {
         Room spawn = Rooms[Rand.Next(Rooms.Count)];
-        player.X = Rand.Next(spawn.x1 + Room.WallOffset + 1, spawn.x2 - Room.WallOffset);
-        player.Y = Rand.Next(spawn.y1 + Room.WallOffset + 1, spawn.y2 - Room.WallOffset);
+        (player.X, player.Y) = spawn.RandPos(Rand);
+        Room stairRoom = spawn;
+
+        while (stairRoom == spawn)
+        {
+            stairRoom = Rooms[Rand.Next(Rooms.Count)];
+        }
+
+        (int posX, int posY) = stairRoom.RandPos(Rand);
+        InteractiveObjects.Add(new InteractiveObject(
+            InteractiveObjectType.Stairs,
+            new(posX, posY)
+        ));
     }
 }

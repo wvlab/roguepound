@@ -63,6 +63,7 @@ type TestingTileSet() =
 
 
 type ClassicTileSet() =
+    // TODO: FIX PLACE WHERE IT'S WRITTEN
     interface ITileSet with
         member this.DrawTile tile destination =
             let text =

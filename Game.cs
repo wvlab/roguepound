@@ -191,6 +191,7 @@ public sealed class Game
             {
                 Artist.DrawDungeon(Storage.Tiles);
                 Artist.DrawActor(Storage.Player);
+                Artist.DrawInteractiveObjects(Storage.InteractiveObjects);
             }
         }
     }

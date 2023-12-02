@@ -15,7 +15,9 @@ public class GameStorage : IStorage
     public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     public Camera2D Camera = new Camera2D();
     public Player Player = new Player();
+    public List<InteractiveObject> InteractiveObjects = new();
     Dungeon.Master Dungeon;
+    long Coins = 0;
 
     private void CenterCamera()
     {
@@ -48,11 +50,12 @@ public class GameStorage : IStorage
         CenterCamera();
         ResetTiles();
         Dungeon.Generate();
+        foreach (var obj in InteractiveObjects) Console.WriteLine(obj);
     }
 
     public GameStorage()
     {
-        Dungeon = new Dungeon.Master(ResetTiles, Tiles, Player.Position);
+        Dungeon = new Dungeon.Master(ResetTiles, Tiles, InteractiveObjects, Player.Position);
         Reset();
     }
 }

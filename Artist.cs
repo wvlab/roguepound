@@ -89,8 +89,8 @@ public class Artist : IArtist
                     x * Settings.TileSize,
                     y * Settings.TileSize
                 );
-
-                TileSet.DrawTile(dungeonTiles[x, y], vec);
+    
+                TileSet.DrawTile(dungeonTiles[x, y], vec + new Vector2(Settings.TileSize / 2, 0));
             }
         }
     }
@@ -100,12 +100,13 @@ public class Artist : IArtist
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
 
+        Color col = Raylib.PURPLE;
         for (int i = 0; i < Settings.TileWidth + 1; i++)
         {
             Raylib.DrawLineV(
                 new Vector2(Settings.TileSize * i, 0),
                 new Vector2(Settings.TileSize * i, Settings.TileHeight * Settings.TileSize),
-                Raylib.LIGHTGRAY
+                col
             );
         }
 
@@ -114,9 +115,14 @@ public class Artist : IArtist
             Raylib.DrawLineV(
                 new Vector2(0, Settings.TileSize * i),
                 new Vector2(Settings.TileWidth * Settings.TileSize, Settings.TileSize * i),
-                Raylib.LIGHTGRAY
+                col
             );
         }
+    }
+
+    private void ClearCell(Position position)
+    {
+        Raylib.DrawRectangleV(position.ToVector2 * Settings.TileSize, new(Settings.TileSize, Settings.TileSize), Raylib.BLACK);
     }
 
     public void DrawActor(IActor actor)
@@ -124,11 +130,26 @@ public class Artist : IArtist
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
 
+        ClearCell(actor.Position);
         FDraw.TextCentered(
             actor.Letter,
-            actor.Position.ToVector2 * new Vector2(Settings.TileSize, Settings.TileSize),
+            (actor.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
             Settings.TileSize,
             Raylib.WHITE
         ).Invoke(null);
+    }
+
+    public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects)
+    {
+        foreach (var obj in interactiveObjects)
+        {
+            ClearCell(obj.Position);
+            FDraw.TextCentered(
+                obj.Letter,
+                (obj.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
+                Settings.TileSize,
+                Raylib.WHITE
+            ).Invoke(null);
+        }
     }
 }
