@@ -80,9 +80,10 @@ public class Artist : IArtist
 
     public void DrawDungeon(in Tile[,] dungeonTiles)
     {
+#if DEBUG
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
-
+#endif
         for (int x = 0; x < Settings.TileWidth; x += 1)
         {
             for (int y = 0; y < Settings.TileHeight; y += 1)
@@ -103,9 +104,10 @@ public class Artist : IArtist
 
     public void DrawGrid()
     {
+#if DEBUG
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
-
+#endif
         Color col = Raylib.PURPLE;
         for (int i = 0; i < Settings.TileWidth + 1; i++)
         {
@@ -128,14 +130,19 @@ public class Artist : IArtist
 
     private void ClearCell(Position position)
     {
+#if DEBUG
+        CheckPermissionToDraw();
+        CheckPermissionToDraw2D();
+#endif
         Raylib.DrawRectangleV(position.ToVector2 * Settings.TileSize, new(Settings.TileSize, Settings.TileSize), Raylib.BLACK);
     }
 
     public void DrawActor(IActor actor)
     {
+#if DEBUG
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
-
+#endif
         ClearCell(actor.Position);
         FDraw.TextCentered(
             actor.Letter,
@@ -147,7 +154,9 @@ public class Artist : IArtist
 
     public void DrawStatusBar(GameStorage storage)
     {
+#if DEBUG
         CheckPermissionToDraw();
+#endif
 
         Player player = storage.Player;
         int screenWidth = Raylib.GetScreenWidth();
@@ -171,6 +180,10 @@ public class Artist : IArtist
 
     public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects, in Tile[,] tiles)
     {
+#if DEBUG
+        CheckPermissionToDraw();
+        CheckPermissionToDraw2D();
+#endif
         foreach (var obj in interactiveObjects)
         {
             (int posX, int posY) = (obj.Position.X, obj.Position.Y);
