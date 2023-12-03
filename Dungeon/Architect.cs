@@ -3,10 +3,18 @@ using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
+public class BrokenDungeonException : Exception
+{
+    public BrokenDungeonException() { }
+    public BrokenDungeonException(string message) : base(message) { }
+}
+
 internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Rooms)
 {
     const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
-    const int RoomCountThreshold = 13;
+    const int MaxRoomCountThreshold = 16;
+    const int MinRoomCount = 4;
+    const int MaxRoomArea = 37 * 37;
     internal List<Edge> Corridors = new List<Edge>();
 
     enum SplitDirection { Horizontal, Vertical }
@@ -45,6 +53,12 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         Corridors.Clear();
         GenerateTree();
         GenerateSpanningTree();
+
+        if (Rooms.Count <= MinRoomCount)
+        {
+            throw new BrokenDungeonException("Too less rooms :(");
+        }
+
         FreeRandomRooms();
         WriteTiles();
     }
@@ -96,7 +110,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
 
     private void FreeRandomRooms()
     {
-        for (int unclearRooms = Rooms.Count() - RoomCountThreshold; unclearRooms > 0; unclearRooms--)
+        for (int unclearRooms = Rooms.Count() - MaxRoomCountThreshold; unclearRooms > 0; unclearRooms--)
         {
             Rooms.RemoveAt(Rand.Next(Rooms.Count));
         }
@@ -111,12 +125,19 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         {
             (_, _) when x > 2.5 * y => SplitDirection.Vertical,
             (_, _) when y > 2.5 * x => SplitDirection.Horizontal,
-            _ => (SplitDirection)Rand.Next(Enum.GetValues(typeof(SplitDirection)).Length),
+            // FIXES AOT COMPILATION WARNING, but maybe i should do it other way
+            //_ => (SplitDirection)Rand.Next(Enum.GetValues(typeof(SplitDirection)).Length),
+            _ => (SplitDirection)Rand.Next(2),
         };
     }
 
     private void GenerateTree(Room leaf, short depth)
     {
+        if (leaf.Area() > MaxRoomArea)
+        {
+            depth--;
+        }
+
         if (leaf.x2 - leaf.x1 < Room.WallOffset * 3 + 2
         || leaf.y2 - leaf.y1 < Room.WallOffset * 3 + 2)
         {
@@ -254,7 +275,9 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
                 {
                     if ((x == room.x1 + Room.WallOffset || x == room.x2 - Room.WallOffset)
                     && (y == room.y1 + Room.WallOffset || y == room.y2 - Room.WallOffset))
-                        throw new Exception("DUNGEON IS BROKEN");
+                    {
+                        throw new BrokenDungeonException("Path is going through corner *sigh*");
+                    }
                 }
                 Tiles[x, y].Type = TileType.Path;
             }

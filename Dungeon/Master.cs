@@ -27,9 +27,11 @@ public sealed record class Master(
                 Architect.Generate();
                 break;
             }
-            catch (Exception e)
+            catch (BrokenDungeonException e)
             {
+#if DEBUG
                 Console.WriteLine(e.Message);
+#endif
                 ResetTiles();
             }
         }
