@@ -12,6 +12,7 @@
     <Compile Include="Tiles.fs" />
     <Compile Include="Interactive.fs" />
     <Compile Include="Actor.fs" />
+    <Compile Include="Evil.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,13 +7,15 @@ type Stats =
     { mutable Health: int
       mutable MaxHealth: int
       mutable Attack: int
-      mutable Armor: int }
+      mutable Armor: int
+      mutable Agility: int16 }
 
     static member Default =
         { Health = 10
           MaxHealth = 10
           Attack = 3
-          Armor = 2 }
+          Armor = 2
+          Agility = int16 75 }
 
 type IActor =
     abstract member Letter: string
@@ -22,11 +24,15 @@ type IActor =
 
 type IMonster =
     inherit IActor
-    abstract member Behavior: Behavior
+    abstract member Gold: int16
+    abstract member Experience: int16
+    abstract member Behavior: Behavior with get, set
 
-and Behavior = | Basic
-// | Distant
-// | Ghost
+and Behavior =
+    | Basic // Just don't give a fuck about anything really
+    | Greedy // If he sees player goes to a gold pile and hides it, then becomes mean
+    | Mean // Attacks first
+    | Flying // AHHHHHHHH WHERE DOES IT GO
 
 type Player() =
     member val Level = 1 with get, set
@@ -45,3 +51,21 @@ type Player() =
     member public this.Letter = (this :> IActor).Letter
     member public this.Position = (this :> IActor).Position
     member public this.Stats = (this :> IActor).Stats
+
+module ActorScene =
+    let Teleport actor x y =
+        actor.Position.X <- x
+        actor.Position.Y <- y
+
+    let Move actor deltaX deltaY =
+        Teleport actor (actor.Position.X + deltaX) (actor.Position.Y + deltaY)
+
+    let MoveChecked check actor deltaX deltaY =
+        let x' = actor.Position.X + deltaX
+        let y' = actor.Position.Y + deltaY
+
+        match check x' y' with
+        | 0 ->
+            Teleport actor x' y'
+            0
+        | a -> a

@@ -68,9 +68,9 @@ static class CameraHandler
         cam.target.Y = FMath.Bound(FarTopCursorBoundary, FarBottomCursorBoundary, cam.target.Y);
     }
 
-    public static void HandleInput(GameStorage Storage)
+    public static void HandleInput()
     {
-        Camera2D cam = Storage.Camera;
+        Camera2D cam = GameStorage.Camera;
 
         HandleZoom(ref cam);
         HandleCameraDrag(ref cam);
@@ -78,49 +78,42 @@ static class CameraHandler
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_F))
         {
             followPlayer = !followPlayer;
-            Storage.CenterCamera();
+            GameStorage.CenterCamera();
         }
 
-        Storage.Camera = cam;
+        GameStorage.Camera = cam;
     }
 
-    public static void UpdateCameraPos(GameStorage Storage)
+    public static void UpdateCameraPos()
     {
         if (followPlayer == true)
         {
-            Storage.Camera.target = Storage.Player.Position.ToVector2 * Settings.TileSize;
+            GameStorage.Camera.target = GameStorage.Player.Position.ToVector2 * Settings.TileSize;
         }
     }
 }
 
 record class GenericDungeonInputState : IState
 {
-    GameStorage Storage;
-
     public void HandleInput()
     {
-        CameraHandler.HandleInput(Storage);
+        CameraHandler.HandleInput();
     }
 
     public void Reset()
     {
     }
-
-    public GenericDungeonInputState(GameStorage storage)
-    {
-        Storage = storage;
-    }
 }
 
-record class InteractState(GameStorage Storage) : MovementState(Storage)
+record class InteractState() : MovementState()
 {
     new public void HandleInput()
     {
         bool interacted = false;
 
-        foreach (var obj in Storage.InteractiveObjects.ToArray())
+        foreach (var obj in GameStorage.InteractiveObjects.ToArray())
         {
-            if (obj.Position == Storage.Player.Position)
+            if (obj.Position == GameStorage.Player.Position)
             {
                 interacted = InteractWithCoins(obj)
                           || InteractWithStairs(obj);
@@ -139,7 +132,7 @@ record class InteractState(GameStorage Storage) : MovementState(Storage)
         {
             if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT) && Raylib.IsKeyPressed(KeyboardKey.KEY_PERIOD))
             {
-                Storage.RegenerateDungeon();
+                GameStorage.RegenerateDungeon();
                 return true;
             }
         }
@@ -151,8 +144,8 @@ record class InteractState(GameStorage Storage) : MovementState(Storage)
     {
         if (obj.Type.IsCoins)
         {
-            Storage.InteractiveObjects.Remove(obj);
-            Storage.Coins += (obj.Type as InteractiveObjectType.Coins)!.amount;
+            GameStorage.InteractiveObjects.Remove(obj);
+            GameStorage.Coins += (obj.Type as InteractiveObjectType.Coins)!.amount;
             return true;
         }
 
@@ -160,16 +153,16 @@ record class InteractState(GameStorage Storage) : MovementState(Storage)
     }
 }
 
-record class MovementState(GameStorage Storage) : GenericDungeonInputState(Storage)
+record class MovementState() : GenericDungeonInputState()
 {
     short Cooldown = 0;
-    Player Player = Storage.Player;
+    Player Player = GameStorage.Player;
     new public void HandleInput()
     {
         if (Raylib.IsKeyPressed(KeyboardKey.KEY_K)
         && Cooldown == 0
         && Player.Position.Y != 0
-        && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y - 1])
+        && Tile.isTraversable(GameStorage.Tiles[Player.Position.X, Player.Position.Y - 1])
         )
         {
             Player.Position.Y -= 1;
@@ -179,7 +172,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
         else if (Raylib.IsKeyPressed(KeyboardKey.KEY_J)
         && Cooldown == 0
         && Player.Position.Y != Settings.TileHeight - 1
-        && Tile.isTraversable(Storage.Tiles[Player.Position.X, Player.Position.Y + 1])
+        && Tile.isTraversable(GameStorage.Tiles[Player.Position.X, Player.Position.Y + 1])
         )
         {
             Player.Position.Y += 1;
@@ -189,7 +182,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
         else if (Raylib.IsKeyPressed(KeyboardKey.KEY_H)
         && Cooldown == 0
         && Player.Position.X != 0
-        && Tile.isTraversable(Storage.Tiles[Player.Position.X - 1, Player.Position.Y])
+        && Tile.isTraversable(GameStorage.Tiles[Player.Position.X - 1, Player.Position.Y])
         )
         {
             Player.Position.X -= 1;
@@ -199,7 +192,7 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
         else if (Raylib.IsKeyPressed(KeyboardKey.KEY_L)
         && Cooldown == 0
         && Player.Position.X != Settings.TileWidth - 1
-        && Tile.isTraversable(Storage.Tiles[Player.Position.X + 1, Player.Position.Y])
+        && Tile.isTraversable(GameStorage.Tiles[Player.Position.X + 1, Player.Position.Y])
         )
         {
             Player.Position.X += 1;
@@ -212,19 +205,19 @@ record class MovementState(GameStorage Storage) : GenericDungeonInputState(Stora
 
     new public void Reset()
     {
-        Player = Storage.Player;
+        Player = GameStorage.Player;
         base.Reset();
     }
 }
 
-record class InDungeonState(GameStorage Storage) : IState
+record class InDungeonState() : IState
 {
-    InteractState Interact = new(Storage);
+    InteractState Interact = new();
 
     public void HandleInput()
     {
         Interact.HandleInput();
-        CameraHandler.UpdateCameraPos(Storage);
+        CameraHandler.UpdateCameraPos();
     }
 
     public void Reset()
@@ -235,7 +228,6 @@ record class InDungeonState(GameStorage Storage) : IState
 
 class GameState : IState
 {
-    public GameStorage GameStorage;
     InDungeonState InDungeon;
 
     private IState _active;
@@ -251,10 +243,9 @@ class GameState : IState
         Active.HandleInput();
     }
 
-    public GameState(GameStorage storage)
+    public GameState()
     {
-        GameStorage = storage;
-        InDungeon = new(storage);
+        InDungeon = new();
         _active = InDungeon;
     }
 }
@@ -305,38 +296,32 @@ static class Enigmatologist
 }
 
 
-public sealed class Game
+public static class Game
 {
-    GameState State;
-    Settings Settings = Settings.Instance;
-    Artist Artist;
-    GameStorage Storage;
-    public void Update()
+    static GameState State = new();
+    static public void Update()
     {
         State.HandleInput();
 
-        Enigmatologist.UpdateFogOfWar(Storage.Player, Storage.Rooms, Storage.Tiles);
+        Enigmatologist.UpdateFogOfWar(GameStorage.Player, GameStorage.Rooms, GameStorage.Tiles);
 
         using (Artist.DrawingEnvironment())
         {
             Raylib.ClearBackground(Raylib.BLACK);
 
-            using (Artist.World2DEnvironment(Storage.Camera))
+            using (Artist.World2DEnvironment(GameStorage.Camera))
             {
-                Artist.DrawDungeon(Storage.Tiles);
-                Artist.DrawInteractiveObjects(Storage.InteractiveObjects, Storage.Tiles);
-                Artist.DrawActor(Storage.Player);
+                Artist.DrawDungeon(GameStorage.Tiles);
+                Artist.DrawInteractiveObjects(GameStorage.InteractiveObjects, GameStorage.Tiles);
+                Artist.DrawActor(GameStorage.Player);
             }
-            Artist.DrawStatusBar(Storage);
+            Artist.DrawStatusBar();
         }
     }
 
-    public Game(Artist artist)
+    static public void Begin()
     {
-        Resolution res = Settings.Instance.Resolution;
-        res.InitWindow("RoguePound");
-        Storage = new();
-        State = new(Storage);
-        Artist = artist;
+        Settings.Resolution.InitWindow("RoguePound");
+        GameStorage.Reset();
     }
 }

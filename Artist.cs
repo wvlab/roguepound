@@ -5,38 +5,31 @@ using FunctionalRoguePound.FUtility;
 
 namespace RoguePound;
 
-public interface IArtist
-{
-    void DrawDungeon(in Tile[,] DungeonTiles);
-    IDisposable DrawingEnvironment();
-    IDisposable World2DEnvironment(Camera2D Camera);
-}
-
 public class ArtistPermissionException : Exception
 {
     public ArtistPermissionException(string message) : base(message) { }
 }
 
 
-public class Artist : IArtist
+static public class Artist
 {
     const int StatusBarHeight = 36;
 
-    private ITileSet TileSet = new ClassicTileSet();
+    static private ITileSet TileSet = new ClassicTileSet();
     private class Permission
     {
         public bool isAllowed { get; set; } = false;
     }
 
-    private Permission permissionToDraw = new Permission();
-    private Permission permissionToDraw2D = new Permission();
+    static private Permission permissionToDraw = new Permission();
+    static private Permission permissionToDraw2D = new Permission();
 
-    private void CheckPermissionToDraw()
+    static private void CheckPermissionToDraw()
     {
         if (!permissionToDraw.isAllowed) throw new ArtistPermissionException("method must be used in DrawingEnvironment");
     }
 
-    private void CheckPermissionToDraw2D()
+    static private void CheckPermissionToDraw2D()
     {
         if (!permissionToDraw2D.isAllowed) throw new ArtistPermissionException("method must be used in World2DEnvironment");
     }
@@ -75,10 +68,10 @@ public class Artist : IArtist
         }
     }
 
-    public IDisposable DrawingEnvironment() => new PermissionEnvironment(permissionToDraw, Raylib.BeginDrawing, Raylib.EndDrawing);
-    public IDisposable World2DEnvironment(Camera2D cam) => new PermissionEnvironment(permissionToDraw2D, () => Raylib.BeginMode2D(cam), Raylib.EndMode2D);
+    static public IDisposable DrawingEnvironment() => new PermissionEnvironment(permissionToDraw, Raylib.BeginDrawing, Raylib.EndDrawing);
+    static public IDisposable World2DEnvironment(Camera2D cam) => new PermissionEnvironment(permissionToDraw2D, () => Raylib.BeginMode2D(cam), Raylib.EndMode2D);
 
-    public void DrawDungeon(in Tile[,] dungeonTiles)
+    static public void DrawDungeon(in Tile[,] dungeonTiles)
     {
 #if DEBUG
         CheckPermissionToDraw();
@@ -102,7 +95,7 @@ public class Artist : IArtist
         }
     }
 
-    public void DrawGrid()
+    static public void DrawGrid()
     {
 #if DEBUG
         CheckPermissionToDraw();
@@ -128,7 +121,7 @@ public class Artist : IArtist
         }
     }
 
-    private void ClearCell(Position position)
+    static private void ClearCell(Position position)
     {
 #if DEBUG
         CheckPermissionToDraw();
@@ -137,7 +130,7 @@ public class Artist : IArtist
         Raylib.DrawRectangleV(position.ToVector2 * Settings.TileSize, new(Settings.TileSize, Settings.TileSize), Raylib.BLACK);
     }
 
-    public void DrawActor(IActor actor)
+    static public void DrawActor(IActor actor)
     {
 #if DEBUG
         CheckPermissionToDraw();
@@ -152,13 +145,12 @@ public class Artist : IArtist
         ).Invoke(null);
     }
 
-    public void DrawStatusBar(GameStorage storage)
+    static public void DrawStatusBar()
     {
 #if DEBUG
         CheckPermissionToDraw();
 #endif
 
-        Player player = storage.Player;
         int screenWidth = Raylib.GetScreenWidth();
         int screenHeight = Raylib.GetScreenHeight();
 
@@ -171,14 +163,19 @@ public class Artist : IArtist
         );
 
         FDraw.TextCentered(
-            $"[LVL:{player.Level}] [Coins:{storage.Coins}] [HP:{player.Stats.Health}] [ATK:{player.Stats.Attack}] [ARM:{player.Stats.Armor}] [EXP:{player.Experience}/{player.ExperienceCap}]",
+            $"[LVL:{GameStorage.Player.Level}] " +
+            $"[Coins:{GameStorage.Coins}] " +
+            $"[HP:{GameStorage.Player.Stats.Health}] " +
+            $"[ATK:{GameStorage.Player.Stats.Attack}] " +
+            $"[ARM:{GameStorage.Player.Stats.Armor}] " +
+            $"[EXP:{GameStorage.Player.Experience}/{GameStorage.Player.ExperienceCap}]",
             new Vector2(screenWidth / 2, screenHeight - StatusBarHeight),
             StatusBarHeight - 8,
             Raylib.WHITE
         ).Invoke(null);
     }
 
-    public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects, in Tile[,] tiles)
+    static public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects, in Tile[,] tiles)
     {
 #if DEBUG
         CheckPermissionToDraw();

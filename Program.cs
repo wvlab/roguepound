@@ -15,11 +15,11 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        Artist drawer = new Artist();
-        Game game = new Game(drawer);
+        Game.Begin();
+
         while (!Raylib.WindowShouldClose())
         {
-            game.Update();
+            Game.Update();
         }
 
         Raylib.CloseWindow();

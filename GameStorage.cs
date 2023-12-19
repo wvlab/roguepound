@@ -4,24 +4,26 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
-public interface IStorage
+public static class GameStorage
 {
-    void Reset();
-}
+    static public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
+    static public Camera2D Camera = new();
+    static public Player Player = new();
+    static public List<InteractiveObject> InteractiveObjects = new();
+    static public List<Room> Rooms = new();
+    static Random Rand = new();
+    static public long Coins = 0;
+    static public int DungeonFloor = 0;
+    static public Dungeon.Master Dungeon = new Dungeon.Master(
+        ResetTiles,
+        Rand,
+        Tiles,
+        Rooms,
+        InteractiveObjects,
+        Player.Position
+    );
 
-
-public class GameStorage : IStorage
-{
-    public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
-    public Camera2D Camera = new();
-    public Player Player = new();
-    public List<InteractiveObject> InteractiveObjects = new();
-    public List<Room> Rooms = new();
-    Random Rand = new();
-    public long Coins = 0;
-    public Dungeon.Master Dungeon;
-
-    public void CenterCamera()
+    static public void CenterCamera()
     {
         Vector2 ScreenCenter = new Vector2(
             (float)Raylib.GetScreenWidth(),
@@ -37,7 +39,7 @@ public class GameStorage : IStorage
         Camera.target = Player.Position.ToVector2 * Settings.TileSize;
     }
 
-    private void ResetTiles()
+    static private void ResetTiles()
     {
         for (int x = 0; x < Settings.TileWidth; x += 1)
         {
@@ -49,32 +51,19 @@ public class GameStorage : IStorage
         }
     }
 
-    public void Reset()
+    static public void Reset()
     {
         Camera.zoom = 1.0f;
         Camera.rotation = 0.0f;
+        RegenerateDungeon();
+    }
+
+    static public void RegenerateDungeon()
+    {
         InteractiveObjects.Clear();
         ResetTiles();
         Dungeon.Generate();
+        DungeonFloor++;
         CenterCamera();
     }
-
-    public void RegenerateDungeon()
-    {
-        Reset();
-    }
-
-    public GameStorage()
-    {
-        Dungeon = new Dungeon.Master(
-            ResetTiles,
-            Rand,
-            Tiles,
-            Rooms,
-            InteractiveObjects,
-            Player.Position
-        );
-        Reset();
-    }
 }
-

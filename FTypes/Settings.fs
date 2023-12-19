@@ -23,9 +23,7 @@ type Resolution =
 
 /// Class <c>Settings</c> keeps all constants and variables from settings file(in future)
 type Settings() =
-    static member Instance = Settings()
-
-    member val Resolution = Windowed(900, 600)
+    static member val Resolution = Windowed(900, 600)
 
     static member TileSize = 32
     static member TileHeight = 48
