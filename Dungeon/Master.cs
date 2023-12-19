@@ -26,5 +26,6 @@ public sealed record class Master(Action ResetTiles)
         }
         MainFrame.PostProcTiles();
         MainFrame.PlaceInteractivePieces();
+        MainFrame.PlaceMonsters();
     }
 }

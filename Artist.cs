@@ -136,13 +136,16 @@ static public class Artist
         CheckPermissionToDraw();
         CheckPermissionToDraw2D();
 #endif
-        ClearCell(actor.Position);
-        FDraw.TextCentered(
-            actor.Letter,
-            (actor.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
-            Settings.TileSize,
-            Raylib.WHITE
-        ).Invoke(null);
+        if (GameStorage.Tiles[actor.Position.X, actor.Position.Y].IsOpen)
+        {
+            ClearCell(actor.Position);
+            FDraw.TextCentered(
+                actor.Letter,
+                (actor.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
+                Settings.TileSize,
+                Raylib.WHITE
+            ).Invoke(null);
+        }
     }
 
     static public void DrawStatusBar()
@@ -164,7 +167,7 @@ static public class Artist
 
         FDraw.TextCentered(
             $"[LVL:{GameStorage.Player.Level}] " +
-            $"[Coins:{GameStorage.Coins}] " +
+            $"[Coins:{GameStorage.Gold}] " +
             $"[HP:{GameStorage.Player.Stats.Health}] " +
             $"[ATK:{GameStorage.Player.Stats.Attack}] " +
             $"[ARM:{GameStorage.Player.Stats.Armor}] " +

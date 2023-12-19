@@ -9,6 +9,7 @@ type Position =
       mutable Y: int }
 
     member this.ToVector2: Vector2 = new Vector2(float32 this.X, float32 this.Y)
+    member this.ToTuple: struct (int * int) = struct (this.X, this.Y)
     static member (=)(r1: Position, r2: Position) = r1.Equals r2
 
 module FMath =

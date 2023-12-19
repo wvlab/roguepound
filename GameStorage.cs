@@ -4,6 +4,20 @@ using FunctionalRoguePound;
 
 namespace RoguePound;
 
+public class MonsterData
+{
+    public IMonster Monster;
+    public List<(int, int)> Path;
+    public (int, int) LastPlayerPosition;
+
+    public MonsterData(IMonster monster)
+    {
+        Monster = monster;
+        Path = new();
+        LastPlayerPosition = (-1, -1);
+    }
+}
+
 public static class GameStorage
 {
     static public Random Rand = new();
@@ -11,9 +25,9 @@ public static class GameStorage
     static public Camera2D Camera = new();
     static public Player Player = new();
     static public List<InteractiveObject> InteractiveObjects = new();
-    static public List<IMonster> Monsters = new();
+    static public List<MonsterData> Monsters = new();
     static public List<Room> Rooms = new();
-    static public long Coins = 0;
+    static public long Gold = 0;
     static public int DungeonFloor = 0;
     static public Dungeon.Master Dungeon = new(ResetTiles);
 
@@ -55,6 +69,7 @@ public static class GameStorage
     static public void RegenerateDungeon()
     {
         InteractiveObjects.Clear();
+        Monsters.Clear();
         ResetTiles();
         Dungeon.Generate();
         DungeonFloor++;

@@ -25,6 +25,10 @@ module Evil =
                 with get () = position
                 and set v = position <- v }
 
-    let CreateAquator stats =
+    let CreateAquator stats exp gold =
         let changeStats stats = { stats with Attack = 0 }
-        CreateMonster "A" Mean (changeStats stats)
+        CreateMonster "A" Mean (changeStats stats) exp gold
+
+    let CreateZombie stats exp gold = CreateMonster "Z" Mean stats exp gold
+
+    let CreateSnake stats exp gold = CreateMonster "S" Mean stats exp gold

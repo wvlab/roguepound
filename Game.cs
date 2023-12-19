@@ -7,44 +7,85 @@ namespace RoguePound;
 
 static class Enigmatologist
 {
-    public static void UpdateFogOfWar(Player player, IEnumerable<Room> rooms, Tile[,] tiles)
+    public static void UpdateFogOfWar()
     {
-        (int posX, int posY) = (player.Position.X, player.Position.Y);
-        foreach (Room room in rooms)
+        (int posX, int posY) = (GameStorage.Player.Position.X, GameStorage.Player.Position.Y);
+        foreach (Room room in GameStorage.Rooms)
         {
             if (!room.IsInRoom(posX, posY))
             {
                 continue;
             }
 
-            if (!tiles[room.x1 + Room.WallOffset + 1, room.y1 + Room.WallOffset + 1].IsOpen)
+            if (!GameStorage.Tiles[room.x1 + Room.WallOffset + 1, room.y1 + Room.WallOffset + 1].IsOpen)
             {
                 foreach (int i in room.HWallXCoords().Append(room.x1 + Room.WallOffset).Append(room.x2 - Room.WallOffset))
                 {
                     foreach (int j in room.VWallYCoords().Append(room.y1 + Room.WallOffset).Append(room.y2 - Room.WallOffset))
                     {
-                        tiles[i, j].IsOpen = true;
+                        GameStorage.Tiles[i, j].IsOpen = true;
                     }
                 }
 
                 return;
             }
         }
-        if (player.Position.X != Settings.TileWidth - 1)
+        if (GameStorage.Player.Position.X != Settings.TileWidth - 1)
         {
-            tiles[player.Position.X + 1, player.Position.Y].IsOpen = true;
+            GameStorage.Tiles[GameStorage.Player.Position.X + 1, GameStorage.Player.Position.Y].IsOpen = true;
         }
-        if (player.Position.X != 0)
+        if (GameStorage.Player.Position.X != 0)
         {
-            tiles[player.Position.X - 1, player.Position.Y].IsOpen = true;
+            GameStorage.Tiles[GameStorage.Player.Position.X - 1, GameStorage.Player.Position.Y].IsOpen = true;
         }
-        if (player.Position.Y != Settings.TileHeight - 1)
+        if (GameStorage.Player.Position.Y != Settings.TileHeight - 1)
         {
-            tiles[player.Position.X, player.Position.Y + 1].IsOpen = true;
+            GameStorage.Tiles[GameStorage.Player.Position.X, GameStorage.Player.Position.Y + 1].IsOpen = true;
         }
-        if (player.Position.Y != 0)
+        if (GameStorage.Player.Position.Y != 0)
         {
-            tiles[player.Position.X, player.Position.Y - 1].IsOpen = true;
+            GameStorage.Tiles[GameStorage.Player.Position.X, GameStorage.Player.Position.Y - 1].IsOpen = true;
+        }
+    }
+
+    const int Feeling = 7;
+    public static void UpdateMonsters()
+    {
+        MonsterData[] mDatas = GameStorage.Monsters.ToArray();
+        foreach (MonsterData mData in mDatas)
+        {
+            IMonster monster = mData.Monster;
+
+            if (monster.Stats.Health <= 0)
+            {
+                GameStorage.Gold += monster.Gold;
+                GameStorage.Player.Experience += monster.Experience;
+
+                GameStorage.Monsters.RemoveAll(md => md.Monster == monster);
+                continue;
+            }
+
+            (int x, int y) playerPos = GameStorage.Player.Position.ToTuple;
+            (int x, int y) monsterPos = monster.Position.ToTuple;
+
+            if (mData.LastPlayerPosition != playerPos)
+            {
+                if (FMath.EuclideanDistance(monsterPos.x, monsterPos.y, playerPos.x, playerPos.y) < Feeling)
+                {
+                    AStar.FindPath(monsterPos, playerPos, mData.Path);
+                }
+            }
+
+            if (playerPos.x - monsterPos.x >= -1 && playerPos.x - monsterPos.x <= 1 && playerPos.y - monsterPos.y >= -1 && playerPos.y - monsterPos.y <= 1)
+            {
+                ActorScene.Attack(monster, GameStorage.Player);
+            }
+            else if (mData.Path.Count > 0)
+            {
+                (int cx, int cy) = mData.Path[0];
+                ActorScene.Teleport(monster, cx, cy);
+                mData.Path.RemoveAt(0);
+            }
         }
     }
 }
@@ -56,8 +97,7 @@ public static class Game
     static public void Update()
     {
         State.HandleInput();
-
-        Enigmatologist.UpdateFogOfWar(GameStorage.Player, GameStorage.Rooms, GameStorage.Tiles);
+        Enigmatologist.UpdateFogOfWar();
 
         using (Artist.DrawingEnvironment())
         {
@@ -68,9 +108,9 @@ public static class Game
                 Artist.DrawDungeon(GameStorage.Tiles);
                 Artist.DrawInteractiveObjects(GameStorage.InteractiveObjects, GameStorage.Tiles);
                 Artist.DrawActor(GameStorage.Player);
-                foreach (IMonster monster in GameStorage.Monsters)
+                foreach (MonsterData MData in GameStorage.Monsters)
                 {
-                    Artist.DrawActor(monster);
+                    Artist.DrawActor(MData.Monster);
                 }
             }
             Artist.DrawStatusBar();
@@ -83,3 +123,4 @@ public static class Game
         GameStorage.Reset();
     }
 }
+

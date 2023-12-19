@@ -5,6 +5,20 @@ namespace RoguePound.Dungeon;
 
 internal static class MainFrame
 {
+    static public void PlaceMonsters()
+    {
+        foreach (Room room in GameStorage.Rooms)
+        {
+            for (int i = GameStorage.Rand.Next(1, 4); i > 0; i--)
+            {
+                Stats stats = Stats.Default;
+                IMonster z = Evil.CreateZombie(stats, 6, 1);
+                (z.Position.X, z.Position.Y) = room.RandPos(GameStorage.Rand);
+                GameStorage.Monsters.Add(new MonsterData(z));
+            }
+        }
+    }
+
     static public void PostProcTiles()
     {
         foreach (Room room in GameStorage.Rooms)

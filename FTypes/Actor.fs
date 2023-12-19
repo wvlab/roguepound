@@ -2,7 +2,6 @@ namespace FunctionalRoguePound
 
 open FunctionalRoguePound.FUtility
 
-[<Struct>]
 type Stats =
     { mutable Health: int
       mutable MaxHealth: int
@@ -53,14 +52,14 @@ type Player() =
     member public this.Stats = (this :> IActor).Stats
 
 module ActorScene =
-    let Teleport actor x y =
+    let Teleport (actor: IActor) x y =
         actor.Position.X <- x
         actor.Position.Y <- y
 
     let Move actor deltaX deltaY =
         Teleport actor (actor.Position.X + deltaX) (actor.Position.Y + deltaY)
 
-    let MoveChecked check actor deltaX deltaY =
+    let MoveChecked check (actor: IActor) deltaX deltaY =
         let x' = actor.Position.X + deltaX
         let y' = actor.Position.Y + deltaY
 
@@ -69,3 +68,6 @@ module ActorScene =
             Teleport actor x' y'
             0
         | a -> a
+
+    let Attack (lead: IActor) (victim: IActor) =
+        victim.Stats.Health <- (victim.Stats.Health - lead.Stats.Attack)
