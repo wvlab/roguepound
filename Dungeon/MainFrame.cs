@@ -3,23 +3,17 @@ using FunctionalRoguePound.FUtility;
 
 namespace RoguePound.Dungeon;
 
-internal sealed record class MainFrame(
-    Random Rand,
-    Tile[,] Tiles,
-    List<Room> Rooms,
-    List<InteractiveObject> InteractiveObjects,
-    Position player
-)
+internal static class MainFrame
 {
-    public void PostProcTiles()
+    static public void PostProcTiles()
     {
-        foreach (Room room in Rooms)
+        foreach (Room room in GameStorage.Rooms)
         {
             ChangeRoomTiles(room);
         }
     }
 
-    private void ChangeRoomTiles(Room room)
+    static private void ChangeRoomTiles(Room room)
     {
         foreach (int i in room.HWallXCoords())
         {
@@ -37,51 +31,52 @@ internal sealed record class MainFrame(
         {
             foreach (int j in room.VWallYCoords())
             {
-                Tiles[i, j].Type = TileType.Floor;
+                GameStorage.Tiles[i, j].Type = TileType.Floor;
             }
         }
     }
 
-    private void VPlaceDoor(TileType door, int x, int y) =>
+    static private void VPlaceDoor(TileType door, int x, int y) =>
         PlaceDoor(door, x, y, x + 1, y, x - 1, y);
 
-    private void HPlaceDoor(TileType door, int x, int y) =>
+    static private void HPlaceDoor(TileType door, int x, int y) =>
         PlaceDoor(door, x, y, x, y + 1, x, y - 1);
 
-    private void PlaceDoor(TileType door, int x, int y, int x1, int y1, int x2, int y2)
+    static private void PlaceDoor(TileType door, int x, int y, int x1, int y1, int x2, int y2)
     {
-        if (Tiles[x1, y1].Type.IsPath && Tiles[x2, y2].Type.IsPath)
+        if (GameStorage.Tiles[x1, y1].Type.IsPath && GameStorage.Tiles[x2, y2].Type.IsPath)
         {
-            Tiles[x, y].Type = door;
+            GameStorage.Tiles[x, y].Type = door;
         }
     }
 
-    public void PlaceInteractivePieces()
+    static public void PlaceInteractivePieces()
     {
         PlacePlayerAndStairs();
-        foreach (Room room in Rooms)
+        foreach (Room room in GameStorage.Rooms)
         {
-            (int posX, int posY) = room.RandPos(Rand);
-            InteractiveObjects.Add(new InteractiveObject(
-                InteractiveObjectType.NewCoins(Rand.Next(10, 150)),
+            (int posX, int posY) = room.RandPos(GameStorage.Rand);
+            GameStorage.InteractiveObjects.Add(new InteractiveObject(
+                InteractiveObjectType.NewCoins(GameStorage.Rand.Next(10, 150)),
                 new(posX, posY)
             ));
         }
     }
 
-    private void PlacePlayerAndStairs()
+    static private void PlacePlayerAndStairs()
     {
-        Room spawn = Rooms[Rand.Next(Rooms.Count)];
-        (player.X, player.Y) = spawn.RandPos(Rand);
+        Position player = GameStorage.Player.Position;
+        Room spawn = GameStorage.Rooms[GameStorage.Rand.Next(GameStorage.Rooms.Count)];
+        (player.X, player.Y) = spawn.RandPos(GameStorage.Rand);
         Room stairRoom = spawn;
 
         while (stairRoom == spawn)
         {
-            stairRoom = Rooms[Rand.Next(Rooms.Count)];
+            stairRoom = GameStorage.Rooms[GameStorage.Rand.Next(GameStorage.Rooms.Count)];
         }
 
-        (int posX, int posY) = stairRoom.RandPos(Rand);
-        InteractiveObjects.Add(new InteractiveObject(
+        (int posX, int posY) = stairRoom.RandPos(GameStorage.Rand);
+        GameStorage.InteractiveObjects.Add(new InteractiveObject(
             InteractiveObjectType.Stairs,
             new(posX, posY)
         ));

@@ -9,19 +9,21 @@ public class BrokenDungeonException : Exception
     public BrokenDungeonException(string message) : base(message) { }
 }
 
-internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Rooms)
+internal static class Architect
 {
     const int MaxRoomDepth = 5; // it will roughly give from 20 to 25 rooms
     const int MaxRoomCountThreshold = 16;
     const int MinRoomCount = 4;
     const int MaxRoomArea = 37 * 37;
-    internal List<Edge> Corridors = new List<Edge>();
+    static internal List<Edge> Corridors = new List<Edge>();
 
     enum SplitDirection { Horizontal, Vertical }
 
-    private void WriteTiles()
+    static private void WriteTiles()
     {
-        foreach (Room room in Rooms)
+        var Tiles = GameStorage.Tiles;
+
+        foreach (Room room in GameStorage.Rooms)
         {
             Tiles[room.x1 + Room.WallOffset, room.y1 + Room.WallOffset].Type = TileType.LTCorner;
             Tiles[room.x2 - Room.WallOffset, room.y1 + Room.WallOffset].Type = TileType.RTCorner;
@@ -47,14 +49,14 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         }
     }
 
-    public void Generate()
+    static public void Generate()
     {
-        Rooms.Clear();
+        GameStorage.Rooms.Clear();
         Corridors.Clear();
         GenerateTree();
         GenerateSpanningTree();
 
-        if (Rooms.Count <= MinRoomCount)
+        if (GameStorage.Rooms.Count <= MinRoomCount)
         {
             throw new BrokenDungeonException("Too less rooms :(");
         }
@@ -63,11 +65,11 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         WriteTiles();
     }
 
-    private void GenerateSpanningTree()
+    static private void GenerateSpanningTree()
     {
-        List<Room> unconnectedRooms = new List<Room>(Rooms);
+        List<Room> unconnectedRooms = new List<Room>(GameStorage.Rooms);
 
-        Room currentRoom = unconnectedRooms[Rand.Next(unconnectedRooms.Count)];
+        Room currentRoom = unconnectedRooms[GameStorage.Rand.Next(unconnectedRooms.Count)];
         unconnectedRooms.Remove(currentRoom);
 
         while (unconnectedRooms.Count > 0)
@@ -94,7 +96,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         }
     }
 
-    private double CalculateDistance(Room room1, Room room2)
+    static private double CalculateDistance(Room room1, Room room2)
     {
         (float x1, float y1) = room1.Center();
         (float x2, float y2) = room1.Center();
@@ -102,21 +104,21 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         return FMath.EuclideanDistance(x1, y1, x2, y2);
     }
 
-    private void GenerateTree()
+    static private void GenerateTree()
     {
         Room map = new Room(0, 0, Settings.TileWidth - 1, Settings.TileHeight - 1);
         GenerateTree(map, 0);
     }
 
-    private void FreeRandomRooms()
+    static private void FreeRandomRooms()
     {
-        for (int unclearRooms = Rooms.Count() - MaxRoomCountThreshold; unclearRooms > 0; unclearRooms--)
+        for (int unclearRooms = GameStorage.Rooms.Count() - MaxRoomCountThreshold; unclearRooms > 0; unclearRooms--)
         {
-            Rooms.RemoveAt(Rand.Next(Rooms.Count));
+            GameStorage.Rooms.RemoveAt(GameStorage.Rand.Next(GameStorage.Rooms.Count));
         }
     }
 
-    private SplitDirection ChooseDirection(Room leaf)
+    static private SplitDirection ChooseDirection(Room leaf)
     {
         int x = leaf.x2 - leaf.x1;
         int y = leaf.y2 - leaf.y1;
@@ -127,11 +129,11 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
             (_, _) when y > 2.5 * x => SplitDirection.Horizontal,
             // FIXES AOT COMPILATION WARNING, but maybe i should do it other way
             //_ => (SplitDirection)Rand.Next(Enum.GetValues(typeof(SplitDirection)).Length),
-            _ => (SplitDirection)Rand.Next(2),
+            _ => (SplitDirection)GameStorage.Rand.Next(2),
         };
     }
 
-    private void GenerateTree(Room leaf, short depth)
+    static private void GenerateTree(Room leaf, short depth)
     {
         if (leaf.Area() > MaxRoomArea)
         {
@@ -146,7 +148,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
 
         if (depth >= MaxRoomDepth)
         {
-            Rooms.Add(leaf);
+            GameStorage.Rooms.Add(leaf);
             return;
         }
 
@@ -155,7 +157,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         SplitRoom(leaf, direction, ++depth);
     }
 
-    private void SplitRoom(Room leaf, SplitDirection direction, short depth)
+    static private void SplitRoom(Room leaf, SplitDirection direction, short depth)
     {
         Room leafCopy = leaf;
 
@@ -163,14 +165,14 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         {
             case SplitDirection.Vertical:
                 {
-                    int factor = Rand.Next(0, leaf.x2 - leaf.x1 - Room.WallOffset * 2 - 2);
+                    int factor = GameStorage.Rand.Next(0, leaf.x2 - leaf.x1 - Room.WallOffset * 2 - 2);
                     leaf.x2 -= factor;
                     leafCopy.x1 = leaf.x2 + 1;
                 }
                 break;
             case SplitDirection.Horizontal:
                 {
-                    int factor = Rand.Next(0, leaf.y2 - leaf.y1 - Room.WallOffset * 2 - 2);
+                    int factor = GameStorage.Rand.Next(0, leaf.y2 - leaf.y1 - Room.WallOffset * 2 - 2);
                     leaf.y2 -= factor;
                     leafCopy.y1 = leaf.y2 + 1;
                 }
@@ -182,7 +184,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
     }
 
     // TODO: MAKE IT MORE PRETTY, PLEASE
-    private IEnumerable<(int, int)> TunnelBetween(Room room1, Room room2)
+    static private IEnumerable<(int, int)> TunnelBetween(Room room1, Room room2)
     {
         (float rx1, float ry1) = room1.Center();
         (float rx2, float ry2) = room2.Center();
@@ -191,7 +193,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         int x2 = (int)rx2;
         int y2 = (int)ry2;
 
-        (int cornerX, int cornerY) = Rand.Next(2) == 0 ? (x2, y1) : (x1, y2);
+        (int cornerX, int cornerY) = GameStorage.Rand.Next(2) == 0 ? (x2, y1) : (x1, y2);
 
         IEnumerable<(int, int)> DirectWay = FMath.BresenhamLine(x1, y1, cornerX, cornerY)
             .Concat(FMath.BresenhamLine(cornerX, cornerY, x2, y2));
@@ -204,7 +206,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         {
             if (offsetTime <= 0)
             {
-                foreach (Room room in Rooms.Where(r => !r.Equals(room1) && !r.Equals(room2)))
+                foreach (Room room in GameStorage.Rooms.Where(r => !r.Equals(room1) && !r.Equals(room2)))
                 {
                     if (room.Equals(prRoom))
                     {
@@ -214,7 +216,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
                     // TODO: maybe it could be a function?
                     if ((room.x1 <= x && x <= room.x2) && (y == room.y1 || y == room.y2))
                     {
-                        xOffset = (Rand.Next(2) == 0 ? room.x1 : room.x2) - x;
+                        xOffset = (GameStorage.Rand.Next(2) == 0 ? room.x1 : room.x2) - x;
                         yOffset = 0;
                         int yDelta = room.y2 - room.y1;
                         // I just dunno what it really means, i already forgot
@@ -223,7 +225,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
                     else
                     if ((room.y1 <= y && y <= room.y2) && (x == room.x1 || x == room.x2))
                     {
-                        yOffset = (Rand.Next(2) == 0 ? room.y1 : room.y2) - y;
+                        yOffset = (GameStorage.Rand.Next(2) == 0 ? room.y1 : room.y2) - y;
                         xOffset = 0;
                         int xDelta = room.x2 - room.x1;
                         // offsetTime = Math.Max(xDelta, Math.Abs(x - cornerX));
@@ -265,13 +267,13 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
         }
     }
 
-    private void ConnectRooms(Room room1, Room room2)
+    static private void ConnectRooms(Room room1, Room room2)
     {
         foreach ((int x, int y) in TunnelBetween(room1, room2))
         {
             if (x >= 0 && x < Settings.TileWidth && y >= 0 && y < Settings.TileHeight)
             {
-                foreach (Room room in Rooms)
+                foreach (Room room in GameStorage.Rooms)
                 {
                     if ((x == room.x1 + Room.WallOffset || x == room.x2 - Room.WallOffset)
                     && (y == room.y1 + Room.WallOffset || y == room.y2 - Room.WallOffset))
@@ -279,7 +281,7 @@ internal sealed record class Architect(Random Rand, Tile[,] Tiles, List<Room> Ro
                         throw new BrokenDungeonException("Path is going through corner *sigh*");
                     }
                 }
-                Tiles[x, y].Type = TileType.Path;
+                GameStorage.Tiles[x, y].Type = TileType.Path;
             }
         }
     }

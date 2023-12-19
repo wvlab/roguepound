@@ -68,6 +68,10 @@ public static class Game
                 Artist.DrawDungeon(GameStorage.Tiles);
                 Artist.DrawInteractiveObjects(GameStorage.InteractiveObjects, GameStorage.Tiles);
                 Artist.DrawActor(GameStorage.Player);
+                foreach (IMonster monster in GameStorage.Monsters)
+                {
+                    Artist.DrawActor(monster);
+                }
             }
             Artist.DrawStatusBar();
         }

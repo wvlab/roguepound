@@ -6,22 +6,16 @@ namespace RoguePound;
 
 public static class GameStorage
 {
+    static public Random Rand = new();
     static public Tile[,] Tiles = new Tile[Settings.TileWidth, Settings.TileHeight];
     static public Camera2D Camera = new();
     static public Player Player = new();
     static public List<InteractiveObject> InteractiveObjects = new();
+    static public List<IMonster> Monsters = new();
     static public List<Room> Rooms = new();
-    static Random Rand = new();
     static public long Coins = 0;
     static public int DungeonFloor = 0;
-    static public Dungeon.Master Dungeon = new Dungeon.Master(
-        ResetTiles,
-        Rand,
-        Tiles,
-        Rooms,
-        InteractiveObjects,
-        Player.Position
-    );
+    static public Dungeon.Master Dungeon = new(ResetTiles);
 
     static public void CenterCamera()
     {
