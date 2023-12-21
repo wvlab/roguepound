@@ -61,8 +61,11 @@ public static class GameStorage
 
     static public void Reset()
     {
+        Player = new();
+        Gold = 0;
         Camera.zoom = 1.0f;
         Camera.rotation = 0.0f;
+        DungeonFloor = 0;
         RegenerateDungeon();
     }
 

@@ -11,26 +11,19 @@ public static class Game
     static GameState State = new();
     static public void Update()
     {
+        if (GameStorage.Player.Stats.Health <= 0)
+        {
+            if (!Raylib.IsKeyPressed(KeyboardKey.KEY_R))
+            {
+                Artist.DrawGameOver();
+                return;
+            }
+            GameStorage.Reset();
+        }
         State.HandleInput();
         Enigmatologist.UpdateFogOfWar();
         Enigmatologist.CheckLevelup();
-
-        using (Artist.DrawingEnvironment())
-        {
-            Raylib.ClearBackground(Raylib.BLACK);
-
-            using (Artist.World2DEnvironment(GameStorage.Camera))
-            {
-                Artist.DrawDungeon(GameStorage.Tiles);
-                Artist.DrawInteractiveObjects(GameStorage.InteractiveObjects, GameStorage.Tiles);
-                Artist.DrawActor(GameStorage.Player);
-                foreach (MonsterData MData in GameStorage.Monsters)
-                {
-                    Artist.DrawActor(MData.Monster);
-                }
-            }
-            Artist.DrawStatusBar();
-        }
+        Artist.DrawGame();
     }
 
     static public void Begin()

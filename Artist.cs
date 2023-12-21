@@ -199,4 +199,39 @@ static public class Artist
             }
         }
     }
+
+    static public void DrawGame()
+    {
+        using (Artist.DrawingEnvironment())
+        {
+            Raylib.ClearBackground(Raylib.BLACK);
+
+            using (Artist.World2DEnvironment(GameStorage.Camera))
+            {
+                Artist.DrawDungeon(GameStorage.Tiles);
+                Artist.DrawInteractiveObjects(GameStorage.InteractiveObjects, GameStorage.Tiles);
+                Artist.DrawActor(GameStorage.Player);
+                foreach (MonsterData MData in GameStorage.Monsters)
+                {
+                    Artist.DrawActor(MData.Monster);
+                }
+            }
+            Artist.DrawStatusBar();
+        }
+    }
+
+    static public void DrawGameOver()
+    {
+        using (Artist.DrawingEnvironment())
+        {
+            Raylib.ClearBackground(Raylib.RAYWHITE);
+
+            FDraw.TextCentered(
+                $"Game is over... You got to downward spiral\nYou collected {GameStorage.Gold} gold",
+                new(Raylib.GetScreenWidth() / 2, Raylib.GetScreenHeight() / 2 - Settings.TileSize),
+                Settings.TileSize,
+                Raylib.BLACK
+            ).Invoke(null);
+        }
+    }
 }
