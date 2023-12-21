@@ -14,6 +14,9 @@ public sealed record class Master(Action ResetTiles)
             try
             {
                 Architect.Generate();
+                MainFrame.PostProcTiles();
+                MainFrame.PlaceInteractivePieces();
+                MainFrame.PlaceMonsters();
                 break;
             }
             catch (BrokenDungeonException e)
@@ -24,8 +27,5 @@ public sealed record class Master(Action ResetTiles)
                 ResetTiles();
             }
         }
-        MainFrame.PostProcTiles();
-        MainFrame.PlaceInteractivePieces();
-        MainFrame.PlaceMonsters();
     }
 }

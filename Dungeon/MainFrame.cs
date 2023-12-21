@@ -94,5 +94,12 @@ internal static class MainFrame
             InteractiveObjectType.Stairs,
             new(posX, posY)
         ));
+
+        List<(int, int)> path = new();
+        AStar.FindPath((player.X, player.Y), (posX, posY), path);
+        if (path.Count == 0)
+        {
+            throw new BrokenDungeonException("Does it look like I'm going downward spiral?");
+        }
     }
 }
