@@ -34,7 +34,7 @@ and Behavior =
     | Flying // AHHHHHHHH WHERE DOES IT GO
 
 type Player() =
-    member val Level = 1 with get, set
+    member val Level = 1s with get, set
     member val Experience = 0 with get, set
     member val ExperienceCap = 7 with get, set
 

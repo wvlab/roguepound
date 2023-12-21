@@ -28,3 +28,4 @@ type Settings() =
     static member TileSize = 32
     static member TileHeight = 48
     static member TileWidth = 80
+    static member LevelCap = 21
