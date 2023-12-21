@@ -5,17 +5,33 @@ namespace RoguePound.Dungeon;
 
 internal static class MainFrame
 {
+    static private int CalculateMonstersAmount() => (int)Math.Ceiling(
+        GameStorage.Rooms.Count * (GameStorage.DungeonFloor > 5 ? 1 : 0.5) * GameStorage.Rand.Next(1, 4)
+        + Math.Min(GameStorage.DungeonFloor, 10)
+    );
+
     static public void PlaceMonsters()
     {
-        foreach (Room room in GameStorage.Rooms)
+        int monstersAmount = CalculateMonstersAmount();
+        short[] monstersAmountPerRoom = new short[GameStorage.Rooms.Count];
+        int monstersPerRoom = (int)Math.Ceiling((double)monstersAmount / GameStorage.Rooms.Count) + 2;
+        for (int i = 0; i < monstersAmount; i++)
         {
-            for (int i = GameStorage.Rand.Next(1, 4); i > 0; i--)
+            int roomIndex;
+            Room room;
+            while (true)
             {
-                Stats stats = Stats.Default;
-                IMonster z = Evil.CreateZombie(stats, 6, 1);
-                (z.Position.X, z.Position.Y) = room.RandPos(GameStorage.Rand);
-                GameStorage.Monsters.Add(new MonsterData(z));
+                roomIndex = GameStorage.Rand.Next(0, GameStorage.Rooms.Count);
+                if (monstersAmountPerRoom[roomIndex] < monstersPerRoom)
+                {
+                    room = GameStorage.Rooms[roomIndex];
+                    break;
+                }
             }
+            Stats stats = Stats.Default;
+            IMonster z = Evil.CreateZombie(stats, 6, 1);
+            (z.Position.X, z.Position.Y) = room.RandPos(GameStorage.Rand);
+            GameStorage.Monsters.Add(new MonsterData(z));
         }
     }
 
