@@ -10,7 +10,7 @@ type Position =
 
     member this.ToVector2: Vector2 = new Vector2(float32 this.X, float32 this.Y)
     member this.ToTuple: struct (int * int) = struct (this.X, this.Y)
-    static member (=)(r1: Position, r2: Position) = r1.Equals r2
+    static member op_Equality(r1: Position, r2: Position) = r1.Equals r2
 
 module FMath =
     let BresenhamLine (x1: int) (y1: int) (x2: int) (y2: int) =
@@ -47,10 +47,7 @@ module FMath =
 
 
 module FDraw =
-    let TextCentered (text: string) (destination: Vector2) (fontsize: int) (color: Color) : unit -> unit =
+    let TextCentered (text: string) (destination: Vector2) (fontsize: int) (color: Color) : unit =
         let x' = destination.X - (float32 (Raylib.MeasureText(text, fontsize))) / 2.0f
 
-        let draw () =
-            Raylib.DrawText(text, int x', int destination.Y, fontsize, color)
-
-        draw
+        Raylib.DrawText(text, int x', int destination.Y, fontsize, color)

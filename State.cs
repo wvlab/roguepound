@@ -149,7 +149,7 @@ record class BattleState() : InteractState()
             IMonster monster = mData.Monster;
             if (monster.Position.X == GameStorage.Player.Position.X + deltaX && monster.Position.Y == GameStorage.Player.Position.Y + deltaY)
             {
-                ActorScene.Attack(GameStorage.Player, monster);
+                ActorScene.Attack(GameStorage.Rand, GameStorage.Player, monster);
                 return true;
             }
         }

@@ -82,7 +82,7 @@ static class Enigmatologist
 
             if (playerPos.x - monsterPos.x >= -1 && playerPos.x - monsterPos.x <= 1 && playerPos.y - monsterPos.y >= -1 && playerPos.y - monsterPos.y <= 1)
             {
-                ActorScene.Attack(monster, GameStorage.Player);
+                ActorScene.Attack(GameStorage.Rand, monster, GameStorage.Player);
             }
             else if (mData.Path.Count > 0)
             {

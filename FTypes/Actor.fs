@@ -1,20 +1,21 @@
 namespace FunctionalRoguePound
 
 open FunctionalRoguePound.FUtility
+open Result
 
 type Stats =
     { mutable Health: int
       mutable MaxHealth: int
       mutable Attack: int
-      mutable Armor: int
+      mutable Armor: int16
       mutable Agility: int16 }
 
     static member Default =
         { Health = 10
           MaxHealth = 10
           Attack = 3
-          Armor = 2
-          Agility = int16 75 }
+          Armor = 2s
+          Agility = 2s }
 
 type IActor =
     abstract member Letter: string
@@ -69,5 +70,22 @@ module ActorScene =
             0
         | a -> a
 
-    let Attack (lead: IActor) (victim: IActor) =
-        victim.Stats.Health <- (victim.Stats.Health - lead.Stats.Attack)
+    let Attack (rnd: System.Random) (lead: IActor) (victim: IActor) =
+        let checkStat stat message =
+            if stat > int16 (rnd.Next(0, 101)) then
+                Error message
+            else
+                Ok()
+
+        let checkArmor () =
+            checkStat victim.Stats.Armor "Armor blocked your attack"
+
+        let checkAgility () =
+            checkStat victim.Stats.Agility "Opponent evaded your attack"
+
+        let attack () =
+            victim.Stats.Health <- (victim.Stats.Health - lead.Stats.Attack)
+
+        match (checkArmor >> bind checkAgility) () with
+        | Ok() -> attack ()
+        | Error _ -> ()

@@ -89,7 +89,7 @@ static public class Artist
                         y * Settings.TileSize
                     );
 
-                    TileSet.DrawTile(dungeonTiles[x, y], vec + new Vector2(Settings.TileSize / 2, 0));
+                    TileSet.DrawTile(dungeonTiles[x, y], vec);
                 }
             }
         }
@@ -144,7 +144,7 @@ static public class Artist
                 (actor.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
                 Settings.TileSize,
                 Raylib.WHITE
-            ).Invoke(null);
+            );
         }
     }
 
@@ -175,7 +175,7 @@ static public class Artist
             new Vector2(screenWidth / 2, screenHeight - StatusBarHeight),
             StatusBarHeight - 8,
             Raylib.WHITE
-        ).Invoke(null);
+        );
     }
 
     static public void DrawInteractiveObjects(in IEnumerable<InteractiveObject> interactiveObjects, in Tile[,] tiles)
@@ -195,7 +195,7 @@ static public class Artist
                     (obj.Position.ToVector2 + new Vector2(0.5f, 0)) * new Vector2(Settings.TileSize),
                     Settings.TileSize,
                     Raylib.WHITE
-                ).Invoke(null);
+                );
             }
         }
     }
@@ -231,7 +231,7 @@ static public class Artist
                 new(Raylib.GetScreenWidth() / 2, Raylib.GetScreenHeight() / 2 - Settings.TileSize),
                 Settings.TileSize,
                 Raylib.BLACK
-            ).Invoke(null);
+            );
         }
     }
 }

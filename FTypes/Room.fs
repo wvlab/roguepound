@@ -34,4 +34,4 @@ type public Room =
 
         struct (aux this.x1 this.x2, aux this.y1 this.y2)
 
-    static member (=)(r1: Room, r2: Room) = r1.Equals r2
+    static member op_Equality(r1: Room, r2: Room) = r1.Equals r2

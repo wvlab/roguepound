@@ -61,7 +61,7 @@ internal static class MainFrame
             health: Math.Min(0, Stats.Default.Health - delta),
             maxHealth: Math.Min(0, Stats.Default.MaxHealth - delta),
             attack: Math.Min(0, Stats.Default.Attack - delta),
-            armor: Math.Min(0, Stats.Default.Armor - delta),
+            armor: (short)Math.Min(0, Stats.Default.Armor - delta),
             agility: (short)Math.Min(0, Stats.Default.Agility - delta)
         );
     }

@@ -89,7 +89,6 @@ type TestingTileSet() =
 
 
 type ClassicTileSet() =
-    // TODO: FIX PLACE WHERE IT'S WRITTEN
     interface ITileSet with
         member this.DrawTile tile destination =
             let text =
@@ -111,6 +110,11 @@ type ClassicTileSet() =
                 | _ -> "?"
 
 
-            let draw = FDraw.TextCentered text destination Settings.TileSize Raylib.WHITE
+            let draw() =
+                FDraw.TextCentered
+                    text
+                    (destination + new Vector2(float32 Settings.TileSize / 2f, 0f))
+                    Settings.TileSize
+                    Raylib.WHITE
 
             CommonThings.checkvoid draw (tile.Type)
