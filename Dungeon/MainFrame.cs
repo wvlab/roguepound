@@ -5,11 +5,6 @@ namespace RoguePound.Dungeon;
 
 internal static class MainFrame
 {
-    static private int CalculateMonstersAmount() => (int)Math.Ceiling(
-        GameStorage.Rooms.Count * (GameStorage.DungeonFloor > 5 ? 1 : 0.5) * GameStorage.Rand.Next(1, 4)
-        + Math.Min(GameStorage.DungeonFloor, 10)
-    );
-
     static public void PlaceMonsters()
     {
         int monstersAmount = CalculateMonstersAmount();
@@ -29,10 +24,46 @@ internal static class MainFrame
                 }
             }
             Stats stats = Stats.Default;
-            IMonster z = Evil.CreateZombie(stats, 6, 1);
-            (z.Position.X, z.Position.Y) = room.RandPos(GameStorage.Rand);
-            GameStorage.Monsters.Add(new MonsterData(z));
+            IMonster m = CreateRandMonster(stats, 6, 1);
+            (m.Position.X, m.Position.Y) = room.RandPos(GameStorage.Rand);
+            GameStorage.Monsters.Add(new MonsterData(m));
         }
+    }
+
+    static private int CalculateMonstersAmount() => (int)Math.Ceiling(
+        GameStorage.Rooms.Count * (GameStorage.DungeonFloor > 5 ? 1 : 0.5) * GameStorage.Rand.Next(1, 4)
+        + Math.Min(GameStorage.DungeonFloor, 10)
+    );
+
+    static private IMonster CreateRandMonster(Stats stats, short exp, short gold)
+    {
+        int n = GameStorage.Rand.Next(3);
+        if (n == 0)
+        {
+            return Evil.CreateAquator(stats, exp, gold);
+        }
+        if (n == 1)
+        {
+            return Evil.CreateZombie(stats, exp, gold);
+        }
+        if (n == 2)
+        {
+            return Evil.CreateSnake(stats, exp, gold);
+        }
+
+        throw new Exception("Evil god is dreaming");
+    }
+
+    static private Stats CreateStats()
+    {
+        int delta = GameStorage.DungeonFloor - 10;
+        return new Stats(
+            health: Math.Min(0, Stats.Default.Health - delta),
+            maxHealth: Math.Min(0, Stats.Default.MaxHealth - delta),
+            attack: Math.Min(0, Stats.Default.Attack - delta),
+            armor: Math.Min(0, Stats.Default.Armor - delta),
+            agility: (short)Math.Min(0, Stats.Default.Agility - delta)
+        );
     }
 
     static public void PostProcTiles()

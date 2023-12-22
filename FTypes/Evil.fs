@@ -27,8 +27,14 @@ module Evil =
 
     let CreateAquator stats exp gold =
         let changeStats stats = { stats with Attack = 0 }
+
         CreateMonster "A" Mean (changeStats stats) exp gold
 
     let CreateZombie stats exp gold = CreateMonster "Z" Mean stats exp gold
 
-    let CreateSnake stats exp gold = CreateMonster "S" Mean stats exp gold
+    let CreateSnake stats exp gold =
+        let changeStats stats =
+            { stats with
+                Agility = stats.Agility * 2s }
+
+        CreateMonster "S" Mean (changeStats stats) exp gold
