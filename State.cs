@@ -115,7 +115,7 @@ record class IntraPersonalCommunicationState() : BattleState()
 
         if (Cooldown == 0)
         {
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_PERIOD))
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_PERIOD) && !Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT))
             {
                 GameStorage.Player.Stats.Health = (int)Math.Min(
                     GameStorage.Player.Stats.Health + Math.Ceiling(GameStorage.Player.Stats.MaxHealth * 0.05),
@@ -123,6 +123,7 @@ record class IntraPersonalCommunicationState() : BattleState()
                 );
 
                 interacted = true;
+                Enigmatologist.TakeTurn();
             }
         }
 
