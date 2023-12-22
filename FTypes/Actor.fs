@@ -44,8 +44,8 @@ type Player() =
 
         member val Stats: Stats =
             { Stats.Default with
-                MaxHealth = 12
-                Health = 12 } with get, set
+                MaxHealth = 17
+                Health = 17 } with get, set
 
     member public this.Letter = (this :> IActor).Letter
     member public this.Position = (this :> IActor).Position

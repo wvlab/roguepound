@@ -122,6 +122,7 @@ static class Enigmatologist
         {
             player.Stats.MaxHealth += 2;
             player.Stats.Health = player.Stats.MaxHealth;
+            player.Stats.Attack += 1;
             player.Level += 1;
             player.Experience -= player.ExperienceCap;
             player.ExperienceCap = CalculateNewLevelCap(player.Level);
