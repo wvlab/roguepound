@@ -105,6 +105,39 @@ record class GenericDungeonInputState : IState
     }
 }
 
+record class IntraPersonalCommunicationState() : BattleState()
+{
+    private short Cooldown = 0;
+
+    new public void HandleInput()
+    {
+        bool interacted = false;
+
+        if (Cooldown == 0)
+        {
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_PERIOD))
+            {
+                GameStorage.Player.Stats.Health = (int)Math.Min(
+                    GameStorage.Player.Stats.Health + Math.Ceiling(GameStorage.Player.Stats.MaxHealth * 0.05),
+                    GameStorage.Player.Stats.MaxHealth
+                );
+
+                interacted = true;
+            }
+        }
+
+
+        if (Cooldown > 0) { Cooldown--; }
+
+        if (interacted)
+        {
+            Cooldown = 60 * 5;
+            return;
+        }
+        base.HandleInput();
+    }
+}
+
 record class BattleState() : InteractState()
 {
     private short Cooldown = 30;
@@ -251,17 +284,17 @@ record class MovementState() : GenericDungeonInputState()
 
 record class InDungeonState() : IState
 {
-    BattleState Battle = new();
+    IntraPersonalCommunicationState Intra = new();
 
     public void HandleInput()
     {
-        Battle.HandleInput();
+        Intra.HandleInput();
         CameraHandler.UpdateCameraPos();
     }
 
     public void Reset()
     {
-        Battle.Reset();
+        Intra.Reset();
     }
 }
 
