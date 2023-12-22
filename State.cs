@@ -242,43 +242,84 @@ record class InteractState() : MovementState()
 
 record class MovementState() : GenericDungeonInputState()
 {
-    short Cooldown = 0;
     new public void HandleInput()
     {
         Player Player = GameStorage.Player;
-        bool moved = false;
-        if (Cooldown == 0)
+        bool isRunning = false;
+
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT))
         {
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_K) && Player.Position.Y != 0 && Tile.isTraversable(GameStorage.Tiles[Player.Position.X, Player.Position.Y - 1]))
-            {
-                Player.Position.Y -= 1;
-                moved = true;
-            }
-            else if (Raylib.IsKeyPressed(KeyboardKey.KEY_J) && Player.Position.Y != Settings.TileHeight - 1 && Tile.isTraversable(GameStorage.Tiles[Player.Position.X, Player.Position.Y + 1]))
-            {
-                Player.Position.Y += 1;
-                moved = true;
-            }
-            else if (Raylib.IsKeyPressed(KeyboardKey.KEY_H) && Player.Position.X != 0 && Tile.isTraversable(GameStorage.Tiles[Player.Position.X - 1, Player.Position.Y]))
-            {
-                Player.Position.X -= 1;
-                moved = true;
-            }
-            else if (Raylib.IsKeyPressed(KeyboardKey.KEY_L) && Player.Position.X != Settings.TileWidth - 1 && Tile.isTraversable(GameStorage.Tiles[Player.Position.X + 1, Player.Position.Y]))
-            {
-                Player.Position.X += 1;
-                moved = true;
-            }
+            isRunning = true;
         }
 
-        if (Cooldown > 0) { Cooldown--; }
+        int deltaX = 0;
+        int deltaY = 0;
 
-        if (moved)
+        if (Raylib.IsKeyPressed(KeyboardKey.KEY_K))
         {
-            Cooldown = 65;
-            Enigmatologist.UpdateMonsters();
+            deltaY = -1;
         }
-        else base.HandleInput();
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_J))
+        {
+            deltaY = 1;
+        }
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_H))
+        {
+            deltaX = -1;
+        }
+        else if (Raylib.IsKeyPressed(KeyboardKey.KEY_L))
+        {
+            deltaX = 1;
+        }
+
+        MovePlayer(deltaX, deltaY, isRunning, out bool moved);
+        if (!moved)
+        {
+            base.HandleInput();
+        }
+    }
+
+    void MovePlayer(int deltaX, int deltaY, bool isRunning, out bool moved)
+    {
+        moved = false;
+        if (deltaX == 0 && deltaY == 0)
+        {
+            return;
+        }
+        int newY = 0;
+        int newX = 0;
+        int hp = GameStorage.Player.Stats.Health;
+        do
+        {
+            (int x, int y) = GameStorage.Player.Position.ToTuple;
+            newY = y + deltaY;
+            newX = x + deltaX;
+
+            if (newX == Settings.TileWidth || newX == -1)
+            {
+                return;
+            }
+
+            if (newY == Settings.TileHeight || newY == -1)
+            {
+                return;
+            }
+
+            if (!Tile.isTraversable(GameStorage.Tiles[newX, newY]))
+            {
+                return;
+            }
+
+            ActorScene.Move(GameStorage.Player, deltaX, deltaY);
+            Enigmatologist.TakeTurn();
+            moved = true;
+        } while (
+            isRunning
+            && !GameStorage.Tiles[newX, newY].Type.IsDoor
+            && hp == GameStorage.Player.Stats.Health
+            && !GameStorage.InteractiveObjects.Any(obj => obj.Position.ToTuple == (newX, newY))
+            && !GameStorage.Monsters.Any(md => md.Monster.Position.ToTuple == (newX + deltaX, newY + deltaY))
+        );
     }
 }
 

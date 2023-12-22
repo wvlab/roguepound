@@ -5,6 +5,12 @@ namespace RoguePound;
 
 static class Enigmatologist
 {
+    public static void TakeTurn()
+    {
+        UpdateFogOfWar();
+        UpdateMonsters();
+    }
+
     public static void UpdateFogOfWar()
     {
         (int posX, int posY) = (GameStorage.Player.Position.X, GameStorage.Player.Position.Y);

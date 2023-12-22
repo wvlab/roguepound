@@ -21,6 +21,14 @@ type TileType =
     | RDoor
     | Void
 
+    member this.IsDoor =
+        match this with
+        | TDoor
+        | BDoor
+        | LDoor
+        | RDoor -> true
+        | _ -> false
+
 [<Struct>]
 type public Tile =
     { mutable Type: TileType
